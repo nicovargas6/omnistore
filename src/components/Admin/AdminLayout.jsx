@@ -8,7 +8,8 @@ import {
   Sliders, 
   ArrowLeft, 
   Store, 
-  Sparkles
+  Sparkles,
+  FileText
 } from "lucide-react";
 import AdminDashboard from "./AdminDashboard";
 import ProductManager from "./ProductManager";
@@ -65,6 +66,17 @@ export default function AdminLayout() {
           </div>
 
           <div className="flex items-center gap-2">
+            <a
+              href="/propuesta-comercial.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer shadow-xs"
+              title="Abrir folleto y propuesta comercial descargable en PDF"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Propuesta Comercial (PDF)</span>
+            </a>
+
             <button
               onClick={() => setViewMode("storefront")}
               className="flex items-center gap-1.5 bg-white text-neutral-900 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-neutral-100 transition cursor-pointer shadow-xs"
