@@ -907,13 +907,18 @@ REGLAS ESTRICTAS DE RESPUESTA EN WHATSAPP:
 
             {isTyping && (
               <div className="flex justify-start">
-                <div className="bg-white rounded-2xl px-3 py-2 text-xs shadow-2xs text-neutral-400 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce"></span>
-                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
-                  <span className="text-[10px] font-medium ml-1">
-                    {isHumanMode ? "Cajero escribiendo..." : "IA escribiendo..."}
-                  </span>
+                <div className="bg-white rounded-2xl rounded-tl-xs p-3 text-xs shadow-2xs text-neutral-400 max-w-[80%] space-y-2 border border-neutral-100">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="text-[10px] font-bold text-neutral-600">
+                      {isHumanMode ? "Cajero redactando respuesta..." : "IA redactando respuesta..."}
+                    </span>
+                  </div>
+                  {/* Shimmer skeleton lines */}
+                  <div className="space-y-1.5 pt-0.5">
+                    <div className="w-48 max-w-full h-2.5 rounded skeleton-shimmer" />
+                    <div className="w-36 max-w-[85%] h-2.5 rounded skeleton-shimmer" />
+                  </div>
                 </div>
               </div>
             )}

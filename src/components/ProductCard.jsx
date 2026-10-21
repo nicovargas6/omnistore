@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { useStore } from "../context/StoreContext";
 import { Plus, Check, Eye, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ProductCard({ product }) {
   const { storeConfig, addToCart, setSelectedProductForDetail, cart } = useStore();
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [hasImageError, setHasImageError] = useState(false);
 
   const isOutOfStock = product.stock <= 0;
   const isLowStock = product.stock > 0 && product.stock <= 5;
@@ -37,16 +39,23 @@ export default function ProductCard({ product }) {
     >
       {/* Product Image Frame */}
       <div className="relative aspect-4/3 sm:aspect-square bg-neutral-100 overflow-hidden">
+        {/* Skeleton shimmer loader while image is downloading */}
+        {!isImageLoaded && (
+          <div className="absolute inset-0 skeleton-shimmer z-0" />
+        )}
+
         <img
-          src={product.imageUrl}
+          src={hasImageError ? "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80" : product.imageUrl}
           alt={product.name}
-          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-            isOutOfStock ? "grayscale filter opacity-60" : ""
-          }`}
-          loading="lazy"
-          onError={(e) => {
-            e.target.src = "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80";
+          onLoad={() => setIsImageLoaded(true)}
+          onError={() => {
+            setHasImageError(true);
+            setIsImageLoaded(true);
           }}
+          className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+            isImageLoaded ? "opacity-100" : "opacity-0"
+          } ${isOutOfStock ? "grayscale filter opacity-60" : ""}`}
+          loading="lazy"
         />
 
         {/* Floating Badges */}

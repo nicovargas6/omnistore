@@ -16,9 +16,11 @@ export default function ProductDetailModal() {
   const product = selectedProductForDetail;
   const [selectedOption, setSelectedOption] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   useEffect(() => {
     if (product) {
+      setIsImageLoaded(false);
       if (product.options && product.options.length > 0) {
         setSelectedOption(product.options[0]);
       } else {
@@ -82,13 +84,20 @@ export default function ProductDetailModal() {
           </button>
 
           {/* Left: Product Image */}
-          <div className="w-full md:w-1/2 bg-neutral-100 relative min-h-[260px] md:min-h-full">
+          <div className="w-full md:w-1/2 bg-neutral-100 relative min-h-[260px] md:min-h-full overflow-hidden">
+            {!isImageLoaded && (
+              <div className="absolute inset-0 skeleton-shimmer z-0" />
+            )}
             <img
               src={product.imageUrl}
               alt={product.name}
-              className="w-full h-full object-cover object-center"
+              onLoad={() => setIsImageLoaded(true)}
+              className={`w-full h-full object-cover object-center transition-opacity duration-300 ${
+                isImageLoaded ? "opacity-100" : "opacity-0"
+              }`}
               onError={(e) => {
                 e.target.src = "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80";
+                setIsImageLoaded(true);
               }}
             />
             {product.tags && product.tags.length > 0 && (

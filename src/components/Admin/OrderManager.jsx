@@ -19,6 +19,7 @@ import {
   VolumeX
 } from "lucide-react";
 import { toast } from "sonner";
+import { OrderCardSkeleton } from "../Skeleton";
 
 export default function OrderManager() {
   const { 
@@ -35,6 +36,13 @@ export default function OrderManager() {
   } = useStore();
   const [filterStatus, setFilterStatus] = useState("all");
   const [search, setSearch] = useState("");
+  const [isFilteringOrders, setIsFilteringOrders] = useState(false);
+
+  const handleFilterStatus = (status) => {
+    setIsFilteringOrders(true);
+    setFilterStatus(status);
+    setTimeout(() => setIsFilteringOrders(false), 200);
+  };
 
   const filteredOrders = orders.filter((order) => {
     const matchesStatus = filterStatus === "all" || order.status === filterStatus;
@@ -124,7 +132,7 @@ export default function OrderManager() {
           {["all", "pendiente", "preparando", "enviado", "completado", "cancelado"].map((st) => (
             <button
               key={st}
-              onClick={() => setFilterStatus(st)}
+              onClick={() => handleFilterStatus(st)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition cursor-pointer border ${
                 filterStatus === st
                   ? "bg-neutral-900 text-white border-neutral-900 shadow-xs"
@@ -139,7 +147,13 @@ export default function OrderManager() {
 
       {/* Orders List / Cards */}
       <div className="space-y-4">
-        {filteredOrders.length === 0 ? (
+        {isFilteringOrders ? (
+          <>
+            <OrderCardSkeleton />
+            <OrderCardSkeleton />
+            <OrderCardSkeleton />
+          </>
+        ) : filteredOrders.length === 0 ? (
           <div className="bg-white rounded-2xl border border-neutral-200 p-12 text-center text-neutral-400">
             <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-50" />
             <h3 className="text-sm font-semibold text-neutral-800">No hay pedidos con este filtro</h3>

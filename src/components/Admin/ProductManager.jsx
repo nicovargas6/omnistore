@@ -13,6 +13,7 @@ import {
   Filter
 } from "lucide-react";
 import ProductFormModal from "./ProductFormModal";
+import { TableSkeletonRow } from "../Skeleton";
 import { toast } from "sonner";
 
 export default function ProductManager() {
@@ -30,6 +31,19 @@ export default function ProductManager() {
   const [stockFilter, setStockFilter] = useState("all"); // 'all' | 'critical' | 'out'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [isFiltering, setIsFiltering] = useState(false);
+
+  const handleFilterStock = (filter) => {
+    setIsFiltering(true);
+    setStockFilter(filter);
+    setTimeout(() => setIsFiltering(false), 200);
+  };
+
+  const handleFilterCategory = (cat) => {
+    setIsFiltering(true);
+    setSelectedCategory(cat);
+    setTimeout(() => setIsFiltering(false), 200);
+  };
 
   const lowStockCount = products.filter((p) => p.stock > 0 && p.stock <= 5).length;
   const outOfStockCount = products.filter((p) => p.stock === 0).length;
@@ -109,7 +123,7 @@ export default function ProductManager() {
         {/* Stock Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
           <button
-            onClick={() => setStockFilter("all")}
+            onClick={() => handleFilterStock("all")}
             className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border ${
               stockFilter === "all"
                 ? "bg-neutral-900 text-white border-neutral-900"
@@ -119,7 +133,7 @@ export default function ProductManager() {
             Todos ({products.length})
           </button>
           <button
-            onClick={() => setStockFilter("critical")}
+            onClick={() => handleFilterStock("critical")}
             className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border flex items-center gap-1 ${
               stockFilter === "critical"
                 ? "bg-amber-500 text-neutral-950 border-amber-600 font-bold"
@@ -130,7 +144,7 @@ export default function ProductManager() {
             <span>Stock Crítico ({lowStockCount + outOfStockCount})</span>
           </button>
           <button
-            onClick={() => setStockFilter("out")}
+            onClick={() => handleFilterStock("out")}
             className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border ${
               stockFilter === "out"
                 ? "bg-rose-600 text-white border-rose-600"
@@ -145,7 +159,7 @@ export default function ProductManager() {
           <Filter className="w-3.5 h-3.5 text-neutral-400" />
           <select
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+            onChange={(e) => handleFilterCategory(e.target.value)}
             className="bg-neutral-50 border border-neutral-200 text-xs font-medium py-1.5 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900 cursor-pointer"
           >
             <option value="all">Todas las categorías ({categories.length})</option>
@@ -173,7 +187,14 @@ export default function ProductManager() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
-              {filteredProducts.length === 0 ? (
+              {isFiltering ? (
+                <>
+                  <TableSkeletonRow columns={6} />
+                  <TableSkeletonRow columns={6} />
+                  <TableSkeletonRow columns={6} />
+                  <TableSkeletonRow columns={6} />
+                </>
+              ) : filteredProducts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-12 text-neutral-400">
                     <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
