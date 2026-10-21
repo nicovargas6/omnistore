@@ -8,31 +8,88 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
   <style>
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
+
+    /* Print Optimization Rules */
     @media print {
+      @page {
+        size: A4 portrait;
+        margin: 8mm 10mm;
+      }
+
+      *, *:before, *:after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+      }
+
+      html, body {
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 9.5pt !important;
+        line-height: 1.35 !important;
+        color: #111827 !important;
+      }
+
       .no-print {
         display: none !important;
       }
-      body {
-        background: white !important;
-        color: black !important;
-      }
-      .page-break {
-        page-break-before: always;
-      }
-      .shadow-xl, .shadow-2xl, .shadow-lg {
+
+      /* Clean page container for A4 sheets */
+      .page-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
         box-shadow: none !important;
+        background: white !important;
+      }
+
+      .a4-page {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        box-sizing: border-box !important;
+        padding: 4mm 0 !important;
+      }
+
+      .a4-page-2 {
+        page-break-before: always !important;
+        break-before: page !important;
+        padding-top: 8mm !important;
+      }
+
+      .print-border {
         border: 1px solid #e5e7eb !important;
+      }
+
+      .print-avoid-break {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      /* Keep font sizes and padding tight and clean in print */
+      .print-compact-p {
+        padding: 1rem !important;
+      }
+      .print-compact-m {
+        margin-bottom: 0.75rem !important;
       }
     }
   </style>
 </head>
 <body class="bg-neutral-100 text-neutral-900 min-h-screen py-8 px-4 sm:px-6">
 
-  <!-- Top Action Bar (Floating, not in print) -->
+  <!-- Top Action Bar (Floating, omitted in print/PDF) -->
   <div class="no-print max-w-4xl mx-auto mb-6 flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl shadow-sm border border-neutral-200">
     <div class="flex items-center gap-2">
       <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -43,295 +100,331 @@
         <span>🌐 Ver Tienda Demo en Vivo</span>
       </a>
       <button onclick="window.print()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer">
-        <span>📄 Guardar / Imprimir en PDF</span>
+        <span>📄 Descargar en PDF / Imprimir</span>
       </button>
     </div>
   </div>
 
-  <!-- Main Proposal Document (A4 Printable Layout) -->
-  <main class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-neutral-200 overflow-hidden">
+  <!-- Main Proposal Document (Optimized for Screen & 2-Page A4 Print) -->
+  <main class="page-container max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-neutral-200 overflow-hidden">
     
-    <!-- Header Banner -->
-    <header class="bg-neutral-950 text-white p-8 sm:p-10 relative overflow-hidden">
-      <div class="absolute right-0 top-0 w-80 h-80 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- ==================== PAGE 1 OF PROPOSAL ==================== -->
+    <div class="a4-page">
       
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <span class="inline-block bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-black tracking-wider uppercase px-3 py-1 rounded-full mb-2">
-            Solución Gastronómica & Comercial Bolivia 🇧🇴
+      <!-- Header Banner -->
+      <header class="bg-neutral-950 text-white p-6 sm:p-8 rounded-t-3xl sm:rounded-t-none relative overflow-hidden print:rounded-2xl print:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <span class="inline-block bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full mb-1.5">
+              Tecnología Gastronómica & Comercial Bolivia 🇧🇴
+            </span>
+            <h1 class="text-xl sm:text-2xl font-black tracking-tight leading-tight">
+              Plataforma Web de Pedidos & Delivery Propio
+            </h1>
+            <p class="text-neutral-400 text-xs sm:text-sm mt-0.5">
+              0% comisiones a terceros • Cobro directo por QR Simple • Control total de cocina y caja
+            </p>
+          </div>
+          <div class="text-left sm:text-right flex-shrink-0">
+            <div class="text-[9px] uppercase tracking-wider text-neutral-400 font-bold">Propuesta de Servicios</div>
+            <div class="text-xs font-semibold text-emerald-400 mt-0.5">Versión 2026 • Activación en 24h</div>
+          </div>
+        </div>
+
+        <!-- 4 Quick Key Metrics -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-4 border-t border-neutral-800 text-xs">
+          <div class="p-2.5 bg-neutral-900/80 rounded-xl border border-neutral-800">
+            <span class="text-neutral-400 block text-[9px] uppercase font-bold">Comisiones por Venta</span>
+            <strong class="text-emerald-400 text-sm font-black">0% (Cero)</strong>
+          </div>
+          <div class="p-2.5 bg-neutral-900/80 rounded-xl border border-neutral-800">
+            <span class="text-neutral-400 block text-[9px] uppercase font-bold">Método de Cobro</span>
+            <strong class="text-white text-sm font-black">QR Simple Interoperable</strong>
+          </div>
+          <div class="p-2.5 bg-neutral-900/80 rounded-xl border border-neutral-800">
+            <span class="text-neutral-400 block text-[9px] uppercase font-bold">Tiempo de Entrega</span>
+            <strong class="text-white text-sm font-black">24 a 48 Horas</strong>
+          </div>
+          <div class="p-2.5 bg-neutral-900/80 rounded-xl border border-neutral-800">
+            <span class="text-neutral-400 block text-[9px] uppercase font-bold">Compatibilidad</span>
+            <strong class="text-white text-sm font-black">Móvil, Tablet y PC</strong>
+          </div>
+        </div>
+      </header>
+
+      <!-- Section 1: The Problem vs Solution (Financial Comparison) -->
+      <section class="p-6 sm:p-8 border-b border-neutral-100 print:p-5">
+        <h2 class="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-3">
+          1. ¿Por qué una plataforma web propia? (Comparativa Real de Negocio)
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <!-- Bad alternative -->
+          <div class="p-4 rounded-2xl bg-rose-50/70 border border-rose-200">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-bold text-rose-950 text-xs sm:text-sm flex items-center gap-1.5">
+                <span>❌ Apps Tradicionales de Delivery</span>
+              </h3>
+              <span class="text-[9px] font-black bg-rose-200 text-rose-900 px-2 py-0.5 rounded-full">Altas Comisiones</span>
+            </div>
+            <ul class="space-y-1.5 text-[11px] sm:text-xs text-rose-900/90 leading-snug">
+              <li class="flex items-start gap-1.5">
+                <span>•</span>
+                <span><strong>Te cobran entre 20% y 30%</strong> por cada plato vendido. En Bs 15.000 de ventas, ¡les regalas hasta Bs 4.000 al mes!</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span>•</span>
+                <span><strong>Retienen tu dinero</strong> durante semanas antes de liquidarte a tu banco.</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span>•</span>
+                <span><strong>Los clientes no son tuyos:</strong> no tienes sus teléfonos ni nombres para enviarles promociones directas.</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span>•</span>
+                <span>Muestran a tu competencia justo al lado de tus platos recomendados.</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Our solution -->
+          <div class="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-300">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-bold text-emerald-950 text-xs sm:text-sm flex items-center gap-1.5">
+                <span>✅ Tu Propia Plataforma Web</span>
+              </h3>
+              <span class="text-[9px] font-black bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">100% Ganancia Tuya</span>
+            </div>
+            <ul class="space-y-1.5 text-[11px] sm:text-xs text-emerald-950 leading-snug">
+              <li class="flex items-start gap-1.5">
+                <span>•</span>
+                <span><strong>0% comisiones:</strong> El 100% del dinero ingresa directamente a tu cuenta bancaria (BNB, BCP, Banco Unión, Mercantil, etc.).</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span>•</span>
+                <span><strong>Disponibilidad inmediata:</strong> El cliente paga por QR Simple oficial y tienes la plata en tu cuenta al segundo.</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span>•</span>
+                <span><strong>Base de datos propia:</strong> Guardas el nombre, teléfono y dirección de cada cliente para fidelización y WhatsApp.</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span>•</span>
+                <span>Tu marca exclusiva: logo, colores, horarios en vivo y sin distracciones de otros restaurantes.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Key Features Included -->
+      <section class="p-6 sm:p-8 print:p-5">
+        <h2 class="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-3.5">
+          2. ¿Qué incluye el sistema? (Funcionalidades Clave del Software)
+        </h2>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+          
+          <div class="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 space-y-1">
+            <div class="text-lg">📱</div>
+            <h4 class="font-bold text-neutral-900 text-xs">Menú Móvil Interactivo</h4>
+            <p class="text-neutral-600 text-[10.5px] leading-snug">
+              Catálogo visual optimizado para celular, con fotos HD, categorías, opciones y buscador rápido.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 space-y-1">
+            <div class="text-lg">💳</div>
+            <h4 class="font-bold text-neutral-900 text-xs">QR Simple Bancario (0% Fee)</h4>
+            <p class="text-neutral-600 text-[10.5px] leading-snug">
+              Generación de QR a monto exacto con verificación automática y acreditación directa a tu banco.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 space-y-1">
+            <div class="text-lg">🖨️</div>
+            <h4 class="font-bold text-neutral-900 text-xs">Comandas Térmicas 80mm</h4>
+            <p class="text-neutral-600 text-[10.5px] leading-snug">
+              Impresión instantánea en 1 clic para cocina o barra con notas del cliente y desglose de artículos.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 space-y-1">
+            <div class="text-lg">🔔</div>
+            <h4 class="font-bold text-neutral-900 text-xs">Timbre Sonoro en Cocina</h4>
+            <p class="text-neutral-600 text-[10.5px] leading-snug">
+              Alerta acústica dual en el navegador cada vez que entra un nuevo pedido para no descuidar ninguna orden.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 space-y-1">
+            <div class="text-lg">🤖</div>
+            <h4 class="font-bold text-neutral-900 text-xs">Asistente IA WhatsApp</h4>
+            <p class="text-neutral-600 text-[10.5px] leading-snug">
+              Toma pedidos, informa el menú y deriva al cajero humano para autorizar y emitir el código QR.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 space-y-1">
+            <div class="text-lg">📊</div>
+            <h4 class="font-bold text-neutral-900 text-xs">Cierre de Caja Diario</h4>
+            <p class="text-neutral-600 text-[10.5px] leading-snug">
+              Cuadre de turno al instante con Facturación Total, Cobrado por QR, Efectivo y exportación a Excel.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+    <!-- ==================== END OF PAGE 1 ==================== -->
+
+    <!-- ==================== PAGE 2 OF PROPOSAL ==================== -->
+    <div class="a4-page a4-page-2 border-t border-neutral-200 print:border-t-0">
+      
+      <!-- Section 3: Pricing Plans (2 PLANS ONLY) -->
+      <section class="p-6 sm:p-8 bg-neutral-50/50 print:p-5 print:bg-white">
+        <div class="text-center max-w-xl mx-auto mb-6">
+          <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-widest block mb-0.5">
+            3. Modalidades de Inversión
           </span>
-          <h1 class="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
-            Plataforma Web de Pedidos & Delivery Propio
-          </h1>
-          <p class="text-neutral-400 text-sm mt-1">
-            0% comisiones a terceros • Cobro directo por QR Simple • Control total de cocina y caja
-          </p>
-        </div>
-        <div class="text-left sm:text-right flex-shrink-0">
-          <div class="text-[10px] uppercase tracking-wider text-neutral-400 font-bold">Documento Comercial</div>
-          <div class="text-xs font-semibold text-emerald-400 mt-0.5">Versión 2026 • Entrega Inmediata</div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-neutral-800 text-xs">
-        <div>
-          <span class="text-neutral-500 block text-[10px] uppercase font-bold">Comisiones por Venta</span>
-          <strong class="text-emerald-400 text-base font-black">0% (Cero)</strong>
-        </div>
-        <div>
-          <span class="text-neutral-500 block text-[10px] uppercase font-bold">Método de Cobro</span>
-          <strong class="text-white text-base font-black">QR Simple Interoperable</strong>
-        </div>
-        <div>
-          <span class="text-neutral-500 block text-[10px] uppercase font-bold">Tiempo de Activación</span>
-          <strong class="text-white text-base font-black">24 a 48 Horas</strong>
-        </div>
-        <div>
-          <span class="text-neutral-500 block text-[10px] uppercase font-bold">Compatibilidad</span>
-          <strong class="text-white text-base font-black">Móvil, Tablet y PC</strong>
-        </div>
-      </div>
-    </header>
-
-    <!-- Section 1: The Problem vs Solution (Financial Comparison) -->
-    <section class="p-8 sm:p-10 border-b border-neutral-100">
-      <h2 class="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-4">
-        1. ¿Por qué cambiar a una plataforma propia? (Comparativa Real)
-      </h2>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Bad alternative -->
-        <div class="p-5 rounded-2xl bg-rose-50/60 border border-rose-200">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="font-bold text-rose-950 text-sm flex items-center gap-1.5">
-              <span>❌ Apps Tradicionales de Delivery</span>
-            </h3>
-            <span class="text-[10px] font-black bg-rose-200 text-rose-900 px-2 py-0.5 rounded-full">Altas Comisiones</span>
-          </div>
-          <ul class="space-y-2 text-xs text-rose-900/90 leading-relaxed">
-            <li class="flex items-start gap-2">
-              <span>•</span>
-              <span><strong>Te cobran entre 20% y 30%</strong> por cada pedido vendido. Si vendes Bs 15.000, ¡les regalas Bs 4.000 cada mes!</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <span>•</span>
-              <span><strong>Retienen tu dinero</strong> hasta 15 o 30 días antes de liquidarte a tu banco.</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <span>•</span>
-              <span><strong>Los clientes no son tuyos:</strong> no tienes sus teléfonos ni nombres para enviarles promociones directas.</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <span>•</span>
-              <span>Muestran a tu competencia justo al lado de tus platos recomendados.</span>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Our solution -->
-        <div class="p-5 rounded-2xl bg-emerald-50/80 border border-emerald-300">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="font-bold text-emerald-950 text-sm flex items-center gap-1.5">
-              <span>✅ Tu Propia Plataforma Web</span>
-            </h3>
-            <span class="text-[10px] font-black bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">100% Ganancia Tuya</span>
-          </div>
-          <ul class="space-y-2 text-xs text-emerald-950 leading-relaxed">
-            <li class="flex items-start gap-2">
-              <span>•</span>
-              <span><strong>0% comisiones:</strong> El 100% del dinero ingresa directamente a tu cuenta bancaria (BNB, BCP, Banco Unión, Mercantil, etc.).</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <span>•</span>
-              <span><strong>Disponibilidad inmediata:</strong> El cliente paga por QR Simple oficial y tienes la plata en tu cuenta al segundo.</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <span>•</span>
-              <span><strong>Base de datos propia:</strong> Guardas el nombre, teléfono y dirección de cada cliente para fidelización y WhatsApp.</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <span>•</span>
-              <span>Tu marca exclusiva: logo, colores, horarios en vivo y sin distracciones de otros restaurantes.</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section 2: Key Features Included -->
-    <section class="p-8 sm:p-10 border-b border-neutral-100">
-      <h2 class="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-6">
-        2. ¿Qué incluye el sistema? (Funcionalidades Clave)
-      </h2>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-        
-        <div class="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-1.5">
-          <div class="text-xl mb-1">📱</div>
-          <h4 class="font-bold text-neutral-900 text-sm">Menú Móvil Interactivo</h4>
-          <p class="text-neutral-600 leading-snug">
-            Catálogo fluido con fotos en alta definición, categorías, modificadores (guarniciones, término de carne) y buscador en vivo.
+          <h3 class="text-lg sm:text-xl font-black text-neutral-950">
+            Planes Accesibles para tu Negocio
+          </h3>
+          <p class="text-[11px] text-neutral-500 mt-0.5">
+            Sin comisiones sobre tus ventas • Sin contratos de permanencia forzosa
           </p>
         </div>
 
-        <div class="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-1.5">
-          <div class="text-xl mb-1">💳</div>
-          <h4 class="font-bold text-neutral-900 text-sm">QR Simple Bancario (0% Fee)</h4>
-          <p class="text-neutral-600 leading-snug">
-            Generación de QR a monto exacto con verificación automática y datos oficiales de tu cuenta bancaria boliviana.
-          </p>
-        </div>
-
-        <div class="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-1.5">
-          <div class="text-xl mb-1">🖨️</div>
-          <h4 class="font-bold text-neutral-900 text-sm">Comandas Térmicas 80mm</h4>
-          <p class="text-neutral-600 leading-snug">
-            Impresión instantánea en 1 clic para cocina, barra o empaque con notas del cliente y desglose de artículos.
-          </p>
-        </div>
-
-        <div class="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-1.5">
-          <div class="text-xl mb-1">🔔</div>
-          <h4 class="font-bold text-neutral-900 text-sm">Timbre Sonoro en Cocina</h4>
-          <p class="text-neutral-600 leading-snug">
-            Alerta acústica dual en el navegador cada vez que ingresa una orden para no perder ningún pedido en horas pico.
-          </p>
-        </div>
-
-        <div class="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-1.5">
-          <div class="text-xl mb-1">🤖</div>
-          <h4 class="font-bold text-neutral-900 text-sm">Asistente IA WhatsApp</h4>
-          <p class="text-neutral-600 leading-snug">
-            Atención automática de platos, precios y derivación controlada al cajero humano para autorizar el código QR.
-          </p>
-        </div>
-
-        <div class="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-1.5">
-          <div class="text-xl mb-1">📊</div>
-          <h4 class="font-bold text-neutral-900 text-sm">Cierre de Caja Diario</h4>
-          <p class="text-neutral-600 leading-snug">
-            Arqueo de turno al instante con desglose de Facturación Total, Cobrado por QR, Efectivo y exportación a Excel/CSV.
-          </p>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- Section 3: Pricing Plans -->
-    <section class="p-8 sm:p-10 bg-neutral-50/50">
-      <div class="text-center max-w-xl mx-auto mb-8">
-        <span class="text-xs font-bold text-emerald-700 uppercase tracking-widest block mb-1">
-          3. Modalidades de Inversión
-        </span>
-        <h3 class="text-xl sm:text-2xl font-black text-neutral-950">
-          Elige el plan que mejor se adapte a tu local
-        </h3>
-        <p class="text-xs text-neutral-500 mt-1">
-          Sin comisiones por pedido • Sin contratos de permanencia obligatoria
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        
-        <!-- Plan 1: Mensual -->
-        <div class="bg-white p-6 rounded-3xl border border-neutral-200 shadow-xs flex flex-col justify-between space-y-4">
-          <div>
-            <span class="text-[10px] font-black uppercase tracking-wider text-neutral-500 block mb-1">Plan Emprendedor</span>
-            <div class="text-2xl font-black text-neutral-900 font-mono">
-              Bs 190 <span class="text-xs font-normal text-neutral-500">/ mes</span>
+        <!-- 2 Column Balanced Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
+          
+          <!-- Plan 1: Mensual -->
+          <div class="bg-white p-5 sm:p-6 rounded-2xl border border-neutral-200 shadow-xs flex flex-col justify-between space-y-3.5 print:border-neutral-300">
+            <div>
+              <span class="text-[10px] font-black uppercase tracking-wider text-neutral-500 block mb-1">
+                Plan Emprendedor (Mensual)
+              </span>
+              <div class="text-2xl font-black text-neutral-900 font-mono">
+                Bs 190 <span class="text-xs font-normal text-neutral-500">/ mes</span>
+              </div>
+              <p class="text-[11px] text-neutral-500 mt-1">
+                Ideal para probar sin compromisos a largo plazo.
+              </p>
+              <div class="border-t border-neutral-100 my-3"></div>
+              <ul class="space-y-1.5 text-xs text-neutral-700">
+                <li class="flex items-center gap-1.5">✅ <strong>Catálogo y pedidos ilimitados</strong></li>
+                <li class="flex items-center gap-1.5">✅ <strong>0% comisiones</strong> (cobros QR Simple y Efectivo)</li>
+                <li class="flex items-center gap-1.5">✅ Panel admin en vivo para cocina y caja</li>
+                <li class="flex items-center gap-1.5">✅ Alertas sonoras y comandas térmicas (80mm)</li>
+                <li class="flex items-center gap-1.5">✅ Arqueo y cierre de caja automático</li>
+                <li class="flex items-center gap-1.5">✅ Soporte técnico y hosting incluido</li>
+                <li class="flex items-center gap-1.5 text-neutral-400 text-[11px]">❌ Dominio .com propio (utiliza subdominio rápido)</li>
+              </ul>
             </div>
-            <p class="text-[11px] text-neutral-500 mt-2">
-              Ideal para probar sin compromisos a largo plazo.
-            </p>
-            <div class="border-t border-neutral-100 my-4"></div>
-            <ul class="space-y-2 text-xs text-neutral-700">
-              <li class="flex items-center gap-1.5">✅ Catálogo completo ilimitado</li>
-              <li class="flex items-center gap-1.5">✅ Cobros por QR Simple y Efectivo</li>
-              <li class="flex items-center gap-1.5">✅ Panel admin en vivo</li>
-              <li class="flex items-center gap-1.5">✅ Alertas sonoras y comandas</li>
-              <li class="flex items-center gap-1.5">✅ Soporte técnico incluido</li>
-              <li class="flex items-center gap-1.5 text-neutral-400">❌ Dominio .com propio (usa subdominio)</li>
-            </ul>
-          </div>
-          <div class="text-center pt-2">
-            <span class="text-[10px] font-semibold text-neutral-500">Activación en 24h</span>
-          </div>
-        </div>
-
-        <!-- Plan 2: Anual (Featured) -->
-        <div class="bg-neutral-950 text-white p-6 rounded-3xl border-2 border-emerald-500 shadow-lg flex flex-col justify-between space-y-4 relative">
-          <div class="absolute -top-3 right-6 bg-emerald-500 text-neutral-950 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-xs">
-            Más Popular (Ahorra 2 Meses)
-          </div>
-          <div>
-            <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400 block mb-1">Plan Anual Pro</span>
-            <div class="text-2xl font-black text-white font-mono">
-              Bs 1.800 <span class="text-xs font-normal text-neutral-400">/ año</span>
+            <div class="pt-2 border-t border-neutral-100 flex items-center justify-between text-[10px] text-neutral-500">
+              <span>Activación rápida en 24h</span>
+              <span class="font-bold text-neutral-700">Cancela cuando quieras</span>
             </div>
-            <p class="text-[11px] text-neutral-400 mt-2">
-              Equivale a solo Bs 150/mes con todo incluido.
-            </p>
-            <div class="border-t border-neutral-800 my-4"></div>
-            <ul class="space-y-2 text-xs text-neutral-200">
-              <li class="flex items-center gap-1.5">⭐ <strong>Dominio .com propio GRATIS</strong> (ej. mirestaurante.com)</li>
-              <li class="flex items-center gap-1.5">⭐ <strong>Carga inicial de sus primeros 25 platos</strong></li>
-              <li class="flex items-center gap-1.5">✅ Catálogo y pedidos ilimitados</li>
-              <li class="flex items-center gap-1.5">✅ Impresión térmica y alertas sonoras</li>
-              <li class="flex items-center gap-1.5">✅ Arqueo y cierre de caja automático</li>
-              <li class="flex items-center gap-1.5">✅ Soporte prioritario por WhatsApp</li>
-            </ul>
           </div>
-          <div class="text-center pt-2">
-            <span class="text-[10px] font-bold text-emerald-400">La opción más rentable para locales activos</span>
-          </div>
-        </div>
 
-        <!-- Plan 3: Compra Definitiva -->
-        <div class="bg-white p-6 rounded-3xl border border-neutral-200 shadow-xs flex flex-col justify-between space-y-4">
-          <div>
-            <span class="text-[10px] font-black uppercase tracking-wider text-neutral-500 block mb-1">Licencia Definitiva</span>
-            <div class="text-2xl font-black text-neutral-900 font-mono">
-              Bs 2.500 <span class="text-xs font-normal text-neutral-500">pago único</span>
+          <!-- Plan 2: Anual Pro (Featured) -->
+          <div class="bg-neutral-950 text-white p-5 sm:p-6 rounded-2xl border-2 border-emerald-500 shadow-md flex flex-col justify-between space-y-3.5 relative print:bg-neutral-950 print:border-emerald-600">
+            <div class="absolute -top-2.5 right-4 bg-emerald-500 text-neutral-950 text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-xs">
+              Más Conveniente • Ahorra 2 Meses
             </div>
-            <p class="text-[11px] text-neutral-500 mt-2">
-              Sé dueño absoluto del código para siempre.
-            </p>
-            <div class="border-t border-neutral-100 my-4"></div>
-            <ul class="space-y-2 text-xs text-neutral-700">
-              <li class="flex items-center gap-1.5">✅ Instalación llave en mano</li>
-              <li class="flex items-center gap-1.5">✅ Sin mensualidades de por vida</li>
-              <li class="flex items-center gap-1.5">✅ Código fuente configurado para tu local</li>
-              <li class="flex items-center gap-1.5">✅ Capacitación al personal de caja</li>
-              <li class="flex items-center gap-1.5">✅ 3 meses de garantía técnica directa</li>
-              <li class="flex items-center gap-1.5 text-neutral-500 text-[11px]">(Hosting anual opcional Bs 300/año)</li>
-            </ul>
+            <div>
+              <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400 block mb-1">
+                Plan Anual Pro (Recomendado)
+              </span>
+              <div class="text-2xl font-black text-white font-mono">
+                Bs 1.800 <span class="text-xs font-normal text-neutral-400">/ año</span>
+              </div>
+              <p class="text-[11px] text-neutral-400 mt-1">
+                Equivale a solo <strong class="text-emerald-300">Bs 150/mes</strong> con todo incluido.
+              </p>
+              <div class="border-t border-neutral-800 my-3"></div>
+              <ul class="space-y-1.5 text-xs text-neutral-200">
+                <li class="flex items-center gap-1.5">
+                  ⭐ <strong class="text-white">Dominio .com propio GRATIS</strong> (ej. turestaurante.com)
+                </li>
+                <li class="flex items-center gap-1.5">✅ <strong>Catálogo y pedidos ilimitados</strong></li>
+                <li class="flex items-center gap-1.5">✅ <strong>0% comisiones</strong> (QR Simple directo a tu banco)</li>
+                <li class="flex items-center gap-1.5">✅ Panel admin en vivo para cocina y caja</li>
+                <li class="flex items-center gap-1.5">✅ Impresión térmica y alertas sonoras de pedidos</li>
+                <li class="flex items-center gap-1.5">✅ Arqueo y cierre de caja diario con reportes Excel</li>
+                <li class="flex items-center gap-1.5">✅ Soporte prioritario por WhatsApp todo el año</li>
+              </ul>
+            </div>
+            <div class="pt-2 border-t border-neutral-800 flex items-center justify-between text-[10px] text-emerald-400 font-semibold">
+              <span>Todo incluido por 12 meses</span>
+              <span>Inversión más rentable</span>
+            </div>
           </div>
-          <div class="text-center pt-2">
-            <span class="text-[10px] font-semibold text-neutral-500">Cero ataduras mensuales</span>
+
+        </div>
+      </section>
+
+      <!-- Section 4: Process to get started (3 Easy Steps) -->
+      <section class="p-6 sm:p-8 border-t border-neutral-100 print:p-5">
+        <h2 class="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-3">
+          4. ¿Cómo empezamos? (Puesta en Marcha en 3 Pasos)
+        </h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div class="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200">
+            <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-black text-xs flex items-center justify-center mb-2">
+              1
+            </div>
+            <h4 class="font-bold text-neutral-900 text-xs mb-1">Envíanos tu información</h4>
+            <p class="text-neutral-600 text-[11px] leading-snug">
+              Nos pasas tu logo, colores, lista de platos o fotos de tu menú y los datos de tu cuenta bancaria (QR Simple).
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200">
+            <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-black text-xs flex items-center justify-center mb-2">
+              2
+            </div>
+            <h4 class="font-bold text-neutral-900 text-xs mb-1">Configuración en 24h</h4>
+            <p class="text-neutral-600 text-[11px] leading-snug">
+              Armamos tu tienda web personalizada, configuramos la impresora térmica y activamos las alertas de pedidos.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200">
+            <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-black text-xs flex items-center justify-center mb-2">
+              3
+            </div>
+            <h4 class="font-bold text-neutral-900 text-xs mb-1">¡Lanzamiento & Ventas!</h4>
+            <p class="text-neutral-600 text-[11px] leading-snug">
+              Compartes tu enlace en Instagram, WhatsApp o código QR en mesas y empiezas a cobrar el 100% sin intermediarios.
+            </p>
           </div>
         </div>
+      </section>
 
-      </div>
-    </section>
+      <!-- Footer & Call to Action -->
+      <footer class="p-6 sm:p-8 bg-neutral-50 border-t border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-600 print:bg-white print:p-5">
+        <div class="space-y-0.5 text-center sm:text-left">
+          <p class="font-bold text-neutral-900 text-xs sm:text-sm">¿Listo para comenzar a ahorrar comisiones hoy mismo?</p>
+          <p class="text-[11px] text-neutral-500">Solicita tu demostración en vivo configurada para tu propio restaurante o local.</p>
+        </div>
 
-    <!-- Footer / Next Steps -->
-    <footer class="p-8 sm:p-10 border-t border-neutral-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
-      <div class="space-y-1 text-center sm:text-left">
-        <p class="font-bold text-neutral-900 text-sm">¿Listo para comenzar a ahorrar comisiones?</p>
-        <p>Configuramos tu tienda demo con tu logo y menú en menos de 24 horas.</p>
-      </div>
+        <div class="no-print flex items-center gap-2">
+          <button onclick="window.print()" class="px-5 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white font-bold rounded-xl transition shadow-xs cursor-pointer text-xs">
+            Descargar esta Propuesta en PDF
+          </button>
+        </div>
+      </footer>
 
-      <div class="no-print flex items-center gap-2">
-        <button onclick="window.print()" class="px-5 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white font-bold rounded-xl transition shadow-xs cursor-pointer">
-          Descargar esta Propuesta en PDF
-        </button>
-      </div>
-    </footer>
+    </div>
+    <!-- ==================== END OF PAGE 2 ==================== -->
 
   </main>
 
-  <div class="text-center text-xs text-neutral-400 mt-6 no-print">
-    Propuesta comercial generada para presentación de servicios de tecnología gastronómica.
+  <div class="text-center text-xs text-neutral-400 mt-5 no-print">
+    Propuesta comercial generada para presentación de servicios de tecnología gastronómica en Bolivia.
   </div>
 
 </body>
