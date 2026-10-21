@@ -97,7 +97,12 @@ export function StoreProvider({ children }) {
       if (savedData) {
         const parsed = JSON.parse(savedData);
         if (parsed.activePresetKey) setActivePresetKey(parsed.activePresetKey);
-        if (parsed.storeConfig) setStoreConfig(parsed.storeConfig);
+        if (parsed.storeConfig) {
+          const cfg = parsed.storeConfig;
+          if (cfg.currency === "$" || !cfg.currency) cfg.currency = "Bs ";
+          if (cfg.deliveryCost === 2.5) cfg.deliveryCost = 15.0;
+          setStoreConfig(cfg);
+        }
         if (parsed.categories) setCategories(parsed.categories);
         if (parsed.products) setProducts(parsed.products);
         if (parsed.orders) setOrders(parsed.orders);

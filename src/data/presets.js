@@ -11,11 +11,11 @@ export const BUSINESS_PRESETS = {
     name: "Aura Bistró & Cantina",
     tagline: "Cocina de autor, ingredientes orgánicos y coctelería artesanal en un ambiente íntimo.",
     heroBadge: "🍴 Menú Degustación & Pedidos en Línea",
-    currency: "$",
+    currency: "Bs ",
     accentColor: "amber", // Tailwind amber
-    phoneWhatsApp: "+5491123456789",
-    address: "Av. Corrientes 1420, Palermo Soho",
-    deliveryCost: 2.50,
+    phoneWhatsApp: "+591 78901234",
+    address: "Av. Arce #2519, Sopocachi, La Paz, Bolivia",
+    deliveryCost: 15.00,
     logoUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=180&h=180&q=80",
     bannerUrl: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80",
     categories: ["Entradas & Tapas", "Platos Fuertes", "Parrilla & Pastas", "Vinos & Cocteles", "Postres de Autor"],
@@ -120,7 +120,7 @@ export const BUSINESS_PRESETS = {
     name: "KULT Studio | Moda Urbana",
     tagline: "Prendas de corte minimalista, siluetas contemporáneas y algodón orgánico de alta densidad.",
     heroBadge: "✨ Colección Otoño / Invierno Drop 04",
-    currency: "$",
+    currency: "Bs ",
     accentColor: "zinc", // Tailwind zinc / dark
     phoneWhatsApp: "+5491198765432",
     address: "Showroom: Distrito de Diseño, Calle 48 #102",
@@ -229,7 +229,7 @@ export const BUSINESS_PRESETS = {
     name: "VORTEX Herramientas & Materiales",
     tagline: "Suministros certificados, maquinaria de precisión y materiales para la construcción y talleres.",
     heroBadge: "⚡ Venta Mayorista y Minorista con Envío a Obra",
-    currency: "$",
+    currency: "Bs ",
     accentColor: "sky", // Tailwind blue / sky
     phoneWhatsApp: "+5491145678901",
     address: "Parque Industrial Sur, Nave 12",
@@ -338,7 +338,7 @@ export const BUSINESS_PRESETS = {
     name: "Forma & Materia | Galería de Objetos",
     tagline: "Piezas utilitarias, cerámica escultórica y objetos atemporales para espacios contemporáneos.",
     heroBadge: "🏺 Edición Limitada Hecha a Mano",
-    currency: "$",
+    currency: "Bs ",
     accentColor: "emerald", // Tailwind emerald / sage
     phoneWhatsApp: "+5491133221100",
     address: "Estudio & Galería: Pasaje de los Artesanos 19",

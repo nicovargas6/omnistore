@@ -45,44 +45,50 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-neutral-100/70 pb-16">
       {/* Admin Top Bar */}
       <div className="bg-neutral-900 text-white border-b border-neutral-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+          {/* Left Controls */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => setViewMode("storefront")}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white bg-neutral-800 hover:bg-neutral-700 px-3 py-1.5 rounded-lg transition cursor-pointer"
+              className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white bg-neutral-800 hover:bg-neutral-700 px-2.5 sm:px-3 py-1.5 rounded-lg transition cursor-pointer flex-shrink-0"
+              title="Volver a la tienda del cliente"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Volver a la Tienda</span>
+              <span className="hidden sm:inline">Volver a la Tienda</span>
+              <span className="sm:hidden font-medium">Tienda</span>
             </button>
             <div className="h-4 w-px bg-neutral-700 hidden sm:block" />
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-sm tracking-tight text-white">
-                Admin Suite
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-bold text-xs sm:text-sm tracking-tight text-white whitespace-nowrap">
+                Admin
               </span>
-              <span className="text-[10px] bg-neutral-800 text-neutral-300 px-2 py-0.5 rounded border border-neutral-700">
+              <span className="text-[10px] bg-neutral-800 text-neutral-300 px-1.5 py-0.5 rounded border border-neutral-700 hidden md:inline truncate max-w-[140px]">
                 {storeConfig.name}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             <a
               href="/propuesta-comercial.html"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer shadow-xs"
+              className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer shadow-xs whitespace-nowrap"
               title="Abrir folleto y propuesta comercial descargable en PDF"
             >
               <FileText className="w-3.5 h-3.5" />
-              <span>Propuesta Comercial (PDF)</span>
+              <span className="hidden sm:inline">Propuesta Comercial (PDF)</span>
+              <span className="sm:hidden">Propuesta PDF</span>
             </a>
 
             <button
               onClick={() => setViewMode("storefront")}
-              className="flex items-center gap-1.5 bg-white text-neutral-900 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-neutral-100 transition cursor-pointer shadow-xs"
+              className="flex items-center justify-center bg-white text-neutral-900 w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-xs font-bold hover:bg-neutral-100 transition cursor-pointer shadow-xs flex-shrink-0"
+              title="Ver tienda como cliente"
             >
-              <Store className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Ver como Cliente</span>
+              <Store className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+              <span className="hidden sm:inline ml-1.5">Ver como Cliente</span>
             </button>
           </div>
         </div>
