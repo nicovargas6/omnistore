@@ -10,14 +10,13 @@ import {
   Phone, 
   ExternalLink, 
   MessageCircle, 
-  ToggleLeft, 
-  ToggleRight,
   ShieldCheck,
   QrCode,
   CheckCircle2,
   Key,
   Settings,
-  Sparkles as SparklesIcon
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -37,7 +36,7 @@ export default function WhatsAppAiSimulatorModal() {
     {
       id: 1,
       sender: "ai",
-      text: `👋 ¡Hola! Soy el asistente virtual inteligente de *${storeConfig.name}* (${storeConfig.phoneWhatsApp}).\n\n¿En qué te puedo asesorar hoy? Conozco todo el catálogo, precios, promociones y zonas de envío.`,
+      text: `👋 ¡Hola! Soy el asistente virtual inteligente de *${storeConfig.name}* (${storeConfig.phoneWhatsApp}).\n\n¿En qué te puedo asesorar hoy? Conozco todo el menú, precios, promociones, costos de envío y horarios.`,
       time: "Ahora",
     },
   ]);
@@ -46,9 +45,16 @@ export default function WhatsAppAiSimulatorModal() {
   const [isHumanMode, setIsHumanMode] = useState(false);
   const [pendingCashierApproval, setPendingCashierApproval] = useState(false);
   const [currentOrderEstimate, setCurrentOrderEstimate] = useState(95.0);
-  const [geminiApiKey, setGeminiApiKey] = useState(() => localStorage.getItem("omnistore_gemini_api_key") || "");
+  
+  // Safe sanitized key helper
+  const sanitizeKey = (k) => (k || "").trim().replace(/^["']|["']$/g, "").trim();
+
+  const [geminiApiKey, setGeminiApiKey] = useState(() => sanitizeKey(localStorage.getItem("omnistore_gemini_api_key")));
   const [showApiSettings, setShowApiSettings] = useState(false);
   const [tempApiKey, setTempApiKey] = useState(geminiApiKey);
+  const [isTestingKey, setIsTestingKey] = useState(false);
+  const [activeGeminiModel, setActiveGeminiModel] = useState("gemini-1.5-flash");
+
   const chatBottomRef = useRef(null);
 
   useEffect(() => {
@@ -163,79 +169,151 @@ export default function WhatsAppAiSimulatorModal() {
     };
   };
 
-  // Real Google Gemini AI API Caller (if API key is provided)
+  // Quick test and save for Google Gemini API Key
+  const handleSaveAndTestApiKey = async () => {
+    const clean = sanitizeKey(tempApiKey);
+    if (!clean) {
+      setGeminiApiKey("");
+      setTempApiKey("");
+      localStorage.removeItem("omnistore_gemini_api_key");
+      toast.info("Modo IA Local activado.");
+      setShowApiSettings(false);
+      return;
+    }
+
+    setIsTestingKey(true);
+    const candidateModels = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest"];
+    let connectedModel = null;
+
+    for (const m of candidateModels) {
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${clean}`;
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: "ping" }] }],
+            generationConfig: { maxOutputTokens: 5 }
+          })
+        });
+
+        if (res.ok) {
+          connectedModel = m;
+          break;
+        }
+      } catch (e) {
+        // try next
+      }
+    }
+
+    setIsTestingKey(false);
+
+    if (connectedModel) {
+      setGeminiApiKey(clean);
+      setActiveGeminiModel(connectedModel);
+      localStorage.setItem("omnistore_gemini_api_key", clean);
+      toast.success(`¡Google Gemini (${connectedModel}) verificado y activo!`);
+      setShowApiSettings(false);
+    } else {
+      // Save key anyway, notify user that fallback engine is ready
+      setGeminiApiKey(clean);
+      localStorage.setItem("omnistore_gemini_api_key", clean);
+      toast.warning("Clave guardada. Si Google rechaza solicitudes por cuota o región, responderá el motor local optimizado.");
+      setShowApiSettings(false);
+    }
+  };
+
+  // Real Google Gemini AI API Caller with candidate model fallback
   const callGeminiAi = async (userPrompt) => {
-    if (!geminiApiKey || geminiApiKey.trim().length < 10) return null;
+    const cleanKey = sanitizeKey(geminiApiKey);
+    if (!cleanKey || cleanKey.length < 10) return null;
 
     const catalogSummary = products
-      .slice(0, 16)
+      .slice(0, 20)
       .map((p) => `• ${p.name}: ${storeConfig.currency}${p.price.toFixed(2)} (${p.category}) - ${p.description}`)
       .join("\n");
 
-    const systemPrompt = `Eres el asistente virtual oficial de WhatsApp del restaurante "${storeConfig.name}" en Bolivia.
+    const systemPrompt = `Eres el asistente virtual oficial de WhatsApp del restaurante/tienda "${storeConfig.name}" en Bolivia.
 Giro del negocio: ${storeConfig.badge}.
 Dirección física: ${storeConfig.address}.
 Horarios de atención: ${storeConfig.businessHours?.days || "Lunes a Domingo"} de ${storeConfig.businessHours?.openTime || "11:00"} a ${storeConfig.businessHours?.closeTime || "23:00"}.
-Costo de envío a domicilio (Delivery): ${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)} a toda la zona de cobertura habitual.
-Métodos de cobro:
-1. QR Simple Interoperable oficial (Banca Móvil de Bolivia: BNB, BCP, Banco Unión, Mercantil, etc.) con 0% comisión y verificación instantánea.
-2. Efectivo al recibir en mano (contra entrega).
-(NO aceptamos tarjetas en línea para evitar comisiones a los clientes).
-Menú y catálogo:
+Costo de envío a domicilio (Delivery): ${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)} tarifa base a toda la zona de cobertura habitual.
+Métodos de cobro oficiales:
+1. QR Simple Interoperable oficial de Bolivia (BNB, BCP, Banco Unión, Mercantil, etc.) con 0% comisión y verificación instantánea.
+2. Efectivo contra entrega (al recibir el pedido en mano o en caja).
+(NO aceptamos tarjetas en línea para evitar comisiones a los comensales).
+Retiro en el local: Sí, disponible sin costo adicional.
+Facturación: Sí, emitimos factura con NIT o CI sin recargo.
+Tiempo de entrega: 25 a 45 minutos para delivery; 15 a 25 minutos para retiro en local.
+
+Menú y platos disponibles:
 ${catalogSummary}
 
-REGLAS DE RESPUESTA EN WHATSAPP:
+REGLAS ESTRICTAS DE RESPUESTA EN WHATSAPP:
 1. Sé muy educado, cálido, ágil y habla en español latinoamericano natural.
 2. Usa formato de WhatsApp: negritas con asteriscos (*ejemplo*), viñetas con emojis y saltos de línea ordenados.
-3. Respuestas concisas: máximo 2 a 3 párrafos cortos. En WhatsApp los clientes buscan respuestas rápidas.
-4. Si el cliente pregunta "¿cuánto cuesta el delivery?", dale directamente el costo exacto (${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)}) y la dirección desde donde despachas.
-5. Si pregunta por ubicación, horarios o formas de pago, responde directo con los datos oficiales.
-6. Si el cliente pide platos específicos o dice qué desea ordenar (ej. "1 ojo de bife angus", "quiero 2 hamburguesas"), toma nota con el total estimado y explícale que su pedido pasará ahora a atención del cajero para confirmar en cocina y emitir su código QR Simple oficial sin comisiones.`;
+3. Respuestas concisas: máximo 2 párrafos breves. En WhatsApp los clientes buscan respuestas rápidas.
+4. Si el cliente pregunta "¿cuánto cuesta el delivery?", dale directamente el costo exacto (${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)}) y la dirección desde donde despachas (${storeConfig.address}).
+5. Si pregunta por ubicación, horarios, formas de pago, facturación o demoras, responde directo con los datos oficiales.
+6. Si el cliente pide platos específicos o dice qué desea ordenar (ej. "1 ojo de bife angus", "quiero 2 hamburguesas"), toma nota con el total estimado y explícale que su pedido pasará ahora a atención del cajero para confirmar en cocina y emitir su código QR Simple oficial sin comisiones.
+7. Nunca respondas con datos inventados o platos que no pertenezcan al negocio.`;
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey.trim()}`;
+    const candidateModels = [activeGeminiModel, "gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest"];
+    const uniqueModels = [...new Set(candidateModels)];
 
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: `${systemPrompt}\n\n--- MENSAJE DEL CLIENTE EN WHATSAPP ---\n"${userPrompt}"` }]
+    for (const model of uniqueModels) {
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanKey}`;
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [
+                  {
+                    text: `${systemPrompt}\n\n--- MENSAJE DEL CLIENTE EN WHATSAPP ---\n"${userPrompt}"\n\nPor favor, responde directamente como el asistente de ${storeConfig.name} en WhatsApp:`
+                  }
+                ]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.6,
+              maxOutputTokens: 350,
+            }
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (reply) {
+            // Check if the reply indicates an order or cashier authorization
+            const lowerReply = reply.toLowerCase();
+            const lowerPrompt = userPrompt.toLowerCase();
+            if (
+              lowerReply.includes("cajero") ||
+              lowerReply.includes("confirmación") ||
+              lowerReply.includes("confirmacion") ||
+              lowerPrompt.includes("quiero") ||
+              lowerPrompt.includes("dame") ||
+              lowerPrompt.includes("bife") ||
+              lowerPrompt.includes("pedido") ||
+              lowerPrompt.includes("orden") ||
+              /^\s*\d+[\s\w]/.test(lowerPrompt)
+            ) {
+              setPendingCashierApproval(true);
+            }
+            return reply;
           }
-        ],
-        generationConfig: {
-          temperature: 0.6,
-          maxOutputTokens: 350,
         }
-      })
-    });
-
-    if (!res.ok) {
-      console.warn("Gemini API error status:", res.status);
-      throw new Error(`Gemini API error: ${res.status}`);
-    }
-    const data = await res.json();
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    // Check if the conversation is an order placement
-    const lowerReply = (reply || "").toLowerCase();
-    const lowerPrompt = userPrompt.toLowerCase();
-    if (
-      lowerReply.includes("cajero") ||
-      lowerReply.includes("confirmación") ||
-      lowerReply.includes("confirmacion") ||
-      lowerPrompt.includes("quiero") ||
-      lowerPrompt.includes("dame") ||
-      lowerPrompt.includes("bife") ||
-      lowerPrompt.includes("pedido") ||
-      lowerPrompt.includes("orden") ||
-      /^\s*\d+[\s\w]/.test(lowerPrompt)
-    ) {
-      setPendingCashierApproval(true);
+      } catch (err) {
+        console.warn(`Error attempting model ${model}:`, err);
+      }
     }
 
-    return reply || null;
+    return null;
   };
 
   // Local intelligent simulated AI engine grounded on current store data
@@ -266,7 +344,8 @@ REGLAS DE RESPUESTA EN WHATSAPP:
       q.includes("costo") ||
       q.includes("precio") ||
       q.includes("horario") ||
-      q.includes("abierto");
+      q.includes("abierto") ||
+      q.includes("llegan");
 
     // 1. Human intervention request
     if (
@@ -289,24 +368,11 @@ REGLAS DE RESPUESTA EN WHATSAPP:
       q.includes("delivery") ||
       q.includes("envio") ||
       q.includes("flete") ||
-      q.includes("despacho")
+      q.includes("despacho") ||
+      q.includes("llegan a") ||
+      q.includes("cobertura")
     ) {
-      // If asking about cost, availability, zones, or price
-      if (
-        isQuestion ||
-        q.includes("costo") ||
-        q.includes("precio") ||
-        q.includes("cuanto") ||
-        q.includes("vale") ||
-        q.includes("tarifa") ||
-        q.includes("cobran") ||
-        q.includes("zona") ||
-        q.includes("cobertura") ||
-        q.includes("hacen") ||
-        q.includes("llegan")
-      ) {
-        return `🛵 *Información y Costo de Delivery:*\n\n• *Costo de envío base:* ${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)} a toda nuestra zona de cobertura habitual.\n• *Despacho desde:* ${storeConfig.address}\n• *Giro:* ${storeConfig.badge}\n\n¿Te gustaría que te tome un pedido para delivery a domicilio? Dime qué plato te gustaría ordenar.`;
-      }
+      return `🛵 *Información y Costo de Delivery:*\n\n• *Costo de envío base:* ${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)} a toda nuestra zona de cobertura habitual.\n• *Despacho desde:* ${storeConfig.address}\n• *Giro:* ${storeConfig.badge}\n• *Tiempos estimados:* 25 a 45 minutos.\n\n¿Te gustaría que te tome un pedido para delivery a domicilio? Dime qué plato te gustaría ordenar.`;
     }
 
     // 3. Location / Store Address Inquiry
@@ -314,10 +380,10 @@ REGLAS DE RESPUESTA EN WHATSAPP:
       q.includes("donde estan") ||
       q.includes("donde queda") ||
       q.includes("ubicacion") ||
-      q.includes("direccion del local") ||
+      q.includes("direccion") ||
       q.includes("como llego") ||
       q.includes("sucursal") ||
-      (q.includes("direccion") && isQuestion)
+      q.includes("mapa")
     ) {
       return `📍 *Ubicación del Local:*\n\n• Nos encontramos en: *${storeConfig.address}*.\n• Contamos con atención para consumo en salón, retiro en caja y servicio de delivery a domicilio.`;
     }
@@ -329,7 +395,8 @@ REGLAS DE RESPUESTA EN WHATSAPP:
       q.includes("abren") ||
       q.includes("cierran") ||
       q.includes("a que hora") ||
-      q.includes("que dias")
+      q.includes("que dias") ||
+      q.includes("atienden hoy")
     ) {
       return `⏰ *Horarios de Atención en ${storeConfig.name}:*\n\n• *Días:* ${storeConfig.businessHours?.days || "Lunes a Domingo"}\n• *Horario:* ${storeConfig.businessHours?.openTime || "11:00"} a ${storeConfig.businessHours?.closeTime || "23:00"}\n• 🟢 *Estado actual:* ¡Estamos abiertos y recibiendo pedidos!\n\n¿Qué te gustaría ordenar hoy?`;
     }
@@ -347,10 +414,69 @@ REGLAS DE RESPUESTA EN WHATSAPP:
       q.includes("cuenta") ||
       q.includes("banco")
     ) {
-      return `💳 *Métodos de Cobro Disponibles en ${storeConfig.name}:*\n\n1. *QR Simple (Banca Móvil / Interoperable):* Transferencia bancaria directa e inmediata (BNB, BCP, Banco Unión, Mercantil, etc.) con 0% comisión y verificación automática.\n2. *Efectivo:* Pago físico al recibir tu pedido (delivery) o directamente en caja.\n\n⚠️ *Nota:* Por seguridad y rapidez no cobramos con tarjeta en línea. Al confirmar tu comanda, el cajero de turno te autoriza y emite tu código QR Simple directo a tu nombre.`;
+      return `💳 *Métodos de Cobro Disponibles en ${storeConfig.name}:*\n\n1. *QR Simple (Banca Móvil / Interoperable):* Transferencia bancaria directa e inmediata (BNB, BCP, Banco Unión, Mercantil, etc.) con 0% comisión y verificación instantánea.\n2. *Efectivo:* Pago físico al recibir tu pedido en mano o directamente en caja.\n\n⚠️ *Nota:* Por seguridad y rapidez no cobramos con tarjeta en línea. Al confirmar tu comanda, el cajero de turno te autoriza y emite tu código QR Simple directo a tu nombre.`;
     }
 
-    // 6. Menu Recommendations & Specials
+    // 6. Invoicing / Facturación
+    if (
+      q.includes("factura") ||
+      q.includes("facturan") ||
+      q.includes("con factura") ||
+      q.includes("nit") ||
+      q.includes("razon social") ||
+      q.includes("fiscal")
+    ) {
+      return `🧾 *Facturación en ${storeConfig.name}:*\n\n• *¿Emiten factura?* ¡Sí! Emitimos factura legal oficial con derecho a crédito fiscal.\n• *Sin recargo:* El precio publicado ya incluye factura.\n• *Datos necesarios:* Al pasar tu pedido a caja, solo indícanos tu número de NIT o CI y tu Razón Social.`;
+    }
+
+    // 7. Estimated Delivery & Preparation Time
+    if (
+      q.includes("tiempo") ||
+      q.includes("tarda") ||
+      q.includes("demora") ||
+      q.includes("demoran") ||
+      q.includes("en cuanto llega") ||
+      q.includes("rapido")
+    ) {
+      return `⏱️ *Tiempos de Preparación y Envío:*\n\n• 🛵 *Delivery a domicilio:* de 25 a 45 minutos (según la distancia y tráfico de la zona).\n• 🛍️ *Retiro en el local:* de 15 a 25 minutos.\n\nTodos los platos se elaboran al momento en cocina. ¿Deseas hacer tu pedido ahora para que ingrese de inmediato a comanda?`;
+    }
+
+    // 8. Dine-in & Table reservations
+    if (
+      q.includes("reserva") ||
+      q.includes("reservar") ||
+      q.includes("mesa") ||
+      q.includes("salon") ||
+      q.includes("ir a comer alla") ||
+      q.includes("ir al restaurante")
+    ) {
+      return `🍽️ *Atención en Salón y Reservas:*\n\n• Atendemos en sala en nuestro local de *${storeConfig.address}*.\n• Contamos con mesas en salón y ambiente climatizado.\n• *Para reservar mesa:* Escribe *"cajero"* o indícanos la cantidad de personas y la hora deseada para que el encargado te confirme disponibilidad de inmediato.`;
+    }
+
+    // 9. Take away / Pick up at local
+    if (
+      q.includes("recoger") ||
+      q.includes("para llevar") ||
+      q.includes("retiro") ||
+      q.includes("take away") ||
+      q.includes("pasar a buscar")
+    ) {
+      return `🛍️ *Retiro en el Local (Take Away):*\n\n• ¡Claro que sí! Puedes hacer tu pedido por aquí y pasar a retirarlo sin costo alguno por nuestro local en *${storeConfig.address}*.\n• Tu pedido estará listo y empacado para llevar en 15 a 25 minutos.\n\n¿Qué platos te gustaría ordenar para llevar?`;
+    }
+
+    // 10. Promotions & Discounts
+    if (
+      q.includes("promocion") ||
+      q.includes("promo") ||
+      q.includes("descuento") ||
+      q.includes("oferta") ||
+      q.includes("combo")
+    ) {
+      const topDishes = products.slice(0, 3).map(p => `• *${p.name}* a ${storeConfig.currency}${p.price.toFixed(2)}`).join("\n");
+      return `🏷️ *Promociones y Especiales del Día:*\n\n${topDishes}\n\n🛵 *Tarifa Plana de Delivery:* solo ${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)} en toda la zona habitual.\n💳 *QR Simple directo:* 0% recargos.\n\n¿Te gustaría aprovechar alguna de estas opciones hoy?`;
+    }
+
+    // 11. Menu Recommendations & Specials
     if (
       q.includes("recomiendas") ||
       q.includes("recomendacion") ||
@@ -365,10 +491,16 @@ REGLAS DE RESPUESTA EN WHATSAPP:
       return `⭐ *Nuestras Especialidades Recomendadas de la Casa:*\n\n${sample}\n\n¿Te gustaría que te tome nota de alguno de estos para tu pedido?`;
     }
 
-    // 7. Category queries (e.g. postres, bebidas, vinos, cervezas, carnes, pastas)
+    // 12. Category queries (e.g. postres, bebidas, vinos, cervezas, carnes, pastas)
     const matchedCategory = categories.find(cat => q.includes(cleanStr(cat)));
-    if (matchedCategory || q.includes("postre") || q.includes("bebida") || q.includes("vino") || q.includes("cerveza") || q.includes("cafe")) {
-      const catName = matchedCategory || (q.includes("postre") ? "Postres" : q.includes("bebida") || q.includes("vino") || q.includes("cerveza") ? "Bebidas" : "Especialidades");
+    if (matchedCategory || q.includes("postre") || q.includes("bebida") || q.includes("vino") || q.includes("cerveza") || q.includes("cafe") || q.includes("carne") || q.includes("pasta")) {
+      const catName = matchedCategory || (
+        q.includes("postre") ? "Postres" : 
+        q.includes("bebida") || q.includes("vino") || q.includes("cerveza") ? "Bebidas" : 
+        q.includes("carne") ? "Parrilla y Carnes" :
+        q.includes("pasta") ? "Pastas" :
+        "Especialidades"
+      );
       const inCat = products.filter(p => cleanStr(p.category).includes(cleanStr(catName)) || (p.tags && p.tags.some(t => cleanStr(t).includes(q))));
       if (inCat.length > 0) {
         const list = inCat.slice(0, 4).map(p => `• *${p.name}* — ${storeConfig.currency}${p.price.toFixed(2)}`).join("\n");
@@ -376,7 +508,7 @@ REGLAS DE RESPUESTA EN WHATSAPP:
       }
     }
 
-    // 8. Special dietary / Vegetarian options
+    // 13. Special dietary / Vegetarian options
     if (q.includes("vegetariano") || q.includes("vegano") || q.includes("saludable") || q.includes("sin carne") || q.includes("celiaco") || q.includes("sin gluten")) {
       const veg = products.filter(p => p.tags?.some(t => cleanStr(t).includes("vegano") || cleanStr(t).includes("vegetariano")));
       if (veg.length > 0) {
@@ -385,7 +517,19 @@ REGLAS DE RESPUESTA EN WHATSAPP:
       return `Contamos con opciones adaptables en nuestro menú. Indícanos qué ingredientes prefieres omitir y lo coordinamos directamente con cocina.`;
     }
 
-    // 9. Specific Product Order (e.g. "1 Ojo de bife Angus", "bife angus", "dame 2 hamburguesas", "quiero pizza", etc.)
+    // 14. Identity / Assistant explanation
+    if (
+      q.includes("quien eres") ||
+      q.includes("que eres") ||
+      q.includes("como te llamas") ||
+      q.includes("eres robot") ||
+      q.includes("eres ia") ||
+      q.includes("con quien hablo")
+    ) {
+      return `🤖 *¡Hola! Soy el Asistente Virtual Inteligente de ${storeConfig.name}.*\n\nEstoy aquí para:\n• Informarte sobre el menú, ingredientes y precios en tiempo real.\n• Indicarte costos de envío, ubicación y horarios de atención.\n• Registrar tu pedido y coordinar con el cajero para emitirte tu código QR Simple.\n\n¿En qué te puedo asesorar en este momento?`;
+    }
+
+    // 15. Specific Product Order (e.g. "1 Ojo de bife Angus", "bife angus", "dame 2 hamburguesas", "quiero pizza", etc.)
     const { matchedProducts, quantity, hasOrderAction } = analyzeOrderIntent(userQuestion);
 
     if (matchedProducts.length > 0) {
@@ -402,14 +546,14 @@ REGLAS DE RESPUESTA EN WHATSAPP:
       return `📝 *¡Anotado! He registrado tu pedido:*\n${itemsList}\n💵 *Total estimado:* ${storeConfig.currency}${itemTotal.toFixed(2)}\n\n👨‍💼 *Tu pedido se pasará ahora a atención del cajero para confirmar el pedido y disponibilidad en cocina.*\n\n⏳ En breves instantes el personal de caja revisará tu comanda y te autorizará el código QR Simple oficial para realizar tu pago.\n\n🛵 ¿Sería para *Delivery a domicilio* o para *Retirar en el local*?`;
     }
 
-    // 10. Generic order attempt with quantity or ordering verb but no exact menu match
+    // 16. Generic order attempt with quantity or ordering verb but no exact menu match
     if (hasOrderAction && (q.includes("combo") || q.includes("plato") || q.includes("porfa") || q.match(/\d+/))) {
       setCurrentOrderEstimate(65.0);
       setPendingCashierApproval(true);
       return `📝 *¡Anotado! He registrado tu pedido:*\n• *${userQuestion.trim()}*\n\n👨‍💼 *Tu pedido se pasará ahora a atención del cajero para confirmar el pedido y cotizar el monto exacto.*\n\n⏳ En breves instantes el encargado de caja te confirmará disponibilidad y te autorizará el código QR Simple para el pago.\n\n🛵 ¿Sería para *Delivery a domicilio* o para *Retirar en el local*?`;
     }
 
-    // 11. User provides address / finalizes order details (STRICT CHECK: must NOT be a question)
+    // 17. User provides address / finalizes order details (STRICT CHECK: must NOT be a question)
     const hasAddressKeywords =
       q.includes("calle") ||
       q.includes("av.") ||
@@ -432,29 +576,29 @@ REGLAS DE RESPUESTA EN WHATSAPP:
       return `📋 *¡SOLICITUD Y DATOS RECIBIDOS!*\n\nTu pedido se encuentra:\n⏳ *Estado: A la espera de confirmación del cajero.*\n\n👨‍💼 El encargado de caja ya tiene tu comanda y dirección en pantalla para confirmar con cocina.\n\n📲 *En breves instantes el cajero te autorizará el código QR Simple oficial aquí en el chat para realizar tu pago.* (La IA no cobra directamente para evitar errores).\n\n¡Muchas gracias por tu paciencia!`;
     }
 
-    // 12. General Menu / Catalog Overview
+    // 18. General Menu / Catalog Overview
     if (q.includes("menu") || q.includes("carta") || q.includes("catalogo") || q.includes("que tienen") || q.includes("que venden") || q.includes("que hay") || q.includes("platos")) {
       const sample = products.slice(0, 4).map(p => `• *${p.name}* — ${storeConfig.currency}${p.price.toFixed(2)} (${p.category})`).join("\n");
       return `📋 *Catálogo Destacado de ${storeConfig.name}:*\n\n${sample}\n\nTenemos ${products.length} productos en categorías como ${categories.slice(0, 3).join(", ")}. Puedes decirme qué deseas pedir (por ejemplo: *"1 Ojo de bife Angus"* o *"1 Risotto"*).`;
     }
 
-    // 13. General price range inquiry
-    if (q.includes("precio") || q.includes("costo") || q.includes("cuanto sale") || q.includes("cuanto cuesta")) {
+    // 19. General price range inquiry
+    if (q.includes("precio") || q.includes("costo") || q.includes("cuanto sale") || q.includes("cuanto cuesta") || q.includes("caro") || q.includes("barato")) {
       const first = products[0];
       return `Nuestros precios van desde ${storeConfig.currency}${Math.min(...products.map(p=>p.price)).toFixed(2)} hasta ${storeConfig.currency}${Math.max(...products.map(p=>p.price)).toFixed(2)}. Por ejemplo, nuestro *${first.name}* está a ${storeConfig.currency}${first.price.toFixed(2)}. ¿Deseas consultar por algún plato en particular?`;
     }
 
-    // 14. Polite greetings & Small talk
-    if (q.includes("gracias") || q.includes("muchas gracias") || q.includes("agradezco") || q.includes("buenisimo") || q.includes("excelente") || q.includes("chau") || q.includes("adios") || q.includes("hasta luego")) {
+    // 20. Polite greetings & Small talk
+    if (q.includes("gracias") || q.includes("muchas gracias") || q.includes("agradezco") || q.includes("buenisimo") || q.includes("excelente") || q.includes("chau") || q.includes("adios") || q.includes("hasta luego") || q.includes("ok") || q.includes("listo") || q.includes("perfecto")) {
       return `😊 ¡Con mucho gusto! Si deseas pedir algún plato o consultar cualquier detalle, aquí estoy para atenderte. ¡En *${storeConfig.name}* estamos para servirte!`;
     }
 
-    if (q.includes("hola") || q.includes("buenos dias") || q.includes("buenas tardes") || q.includes("buenas noches") || q.includes("que tal")) {
+    if (q.includes("hola") || q.includes("buenos dias") || q.includes("buenas tardes") || q.includes("buenas noches") || q.includes("que tal") || q.includes("buenas")) {
       return `👋 ¡Hola! Bienvenido a *${storeConfig.name}*. ¿Cómo te podemos ayudar hoy? Puedes consultar nuestro menú, precios, horarios, costo de envío o decirme directamente qué plato deseas pedir.`;
     }
 
-    // 15. Intelligent Fallback (Never confuses a query with an order)
-    return `✨ Gracias por tu mensaje. En *${storeConfig.name}* estoy para ayudarte con cualquier consulta:\n\n• 🍽️ *Menú y Precios:* Escribe *"ver menú"* o el nombre de un plato.\n• 🛵 *Delivery:* Costo base ${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)} a toda la zona.\n• ⏰ *Horario:* ${storeConfig.businessHours?.openTime || "11:00"} a ${storeConfig.businessHours?.closeTime || "23:00"}.\n• 💳 *Pagos:* QR Simple interoperable y Efectivo.\n• 👨‍💼 *Cajero:* Escribe *"cajero"* para hablar con el personal.\n\n¿En qué te puedo asesorar hoy?`;
+    // 21. Intelligent Fallback (Never confuses a query with an order)
+    return `✨ En *${storeConfig.name}* estoy para ayudarte con cualquier consulta:\n\n• 🍽️ *Menú y Precios:* Escribe *"ver menú"* o el nombre de un plato.\n• 🛵 *Delivery:* Costo base ${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)} a toda la zona.\n• ⏰ *Horario:* ${storeConfig.businessHours?.openTime || "11:00"} a ${storeConfig.businessHours?.closeTime || "23:00"}.\n• 💳 *Pagos:* QR Simple interoperable y Efectivo.\n• 👨‍💼 *Cajero:* Escribe *"cajero"* para hablar con el personal.\n\n¿En qué te puedo asesorar hoy?`;
   };
 
   const handleSendMessage = async (textToSend = null) => {
@@ -537,14 +681,14 @@ REGLAS DE RESPUESTA EN WHATSAPP:
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-        {/* Backdrop */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+        {/* Backdrop overlay */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={() => setIsAiSimulatorOpen(false)}
-          className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity"
+          className="absolute inset-0"
         />
 
         {/* Modal Window: Smartphone / WhatsApp Chat style */}
@@ -554,88 +698,105 @@ REGLAS DE RESPUESTA EN WHATSAPP:
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           className="relative bg-[#efeae2] w-full max-w-md rounded-3xl shadow-2xl overflow-hidden z-10 border border-neutral-300 flex flex-col h-[650px] max-h-[92vh]"
         >
-          {/* WhatsApp Header: Clean, balanced, native spacing */}
-          <div className="bg-[#075e54] text-white px-3.5 py-2.5 flex items-center justify-between shadow-xs gap-2 border-b border-[#054c44]">
-            {/* Left: Avatar & Identity (flex-1 with truncate so it never squishes) */}
-            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-              <div className="w-9 h-9 rounded-full overflow-hidden bg-white/20 border border-white/30 flex-shrink-0 shadow-2xs">
-                <img src={storeConfig.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+          {/* WhatsApp Header: Clean, balanced, spacious native WhatsApp layout */}
+          <div className="bg-[#075e54] text-white px-4 py-3 flex items-center justify-between shadow-xs gap-3 border-b border-[#054c44]">
+            {/* Left: Store Avatar & Identity */}
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="relative flex-shrink-0">
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-white/20 border-2 border-white/40 shadow-xs">
+                  <img src={storeConfig.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                </div>
+                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#075e54]" title="En línea"></span>
               </div>
               <div className="min-w-0 flex-1">
-                <h4 className="font-bold text-xs sm:text-sm leading-tight flex items-center gap-1.5 truncate">
-                  <span className="truncate">{storeConfig.name}</span>
-                </h4>
-                <div className="text-[10px] text-emerald-200/90 truncate flex items-center gap-1.5 leading-none mt-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0 animate-pulse"></span>
-                  <span className="truncate">
-                    {isHumanMode ? "Cajero en línea" : geminiApiKey ? "Gemini IA activa" : "En línea"}
-                  </span>
-                  <span className="opacity-60">•</span>
-                  <span className="truncate text-[9.5px] opacity-80">{storeConfig.phoneWhatsApp}</span>
+                <div className="flex items-center gap-1.5">
+                  <h4 className="font-bold text-sm leading-tight text-white truncate">
+                    {storeConfig.name}
+                  </h4>
+                  <ShieldCheck className="w-4 h-4 text-emerald-300 flex-shrink-0" title="Cuenta comercial verificada" />
                 </div>
+                <p className="text-[11px] text-emerald-100/85 leading-none mt-1 truncate">
+                  {isHumanMode ? "Cajero humano en línea" : "en línea • Asistente Oficial"}
+                </p>
               </div>
             </div>
 
-            {/* Right: Sleek Action Pills with plenty of breathing room */}
-            <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Right: Minimal, spacious round action buttons */}
+            <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 type="button"
                 onClick={() => {
                   setTempApiKey(geminiApiKey);
                   setShowApiSettings(!showApiSettings);
                 }}
-                className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition cursor-pointer flex items-center gap-1 shadow-2xs ${
+                className={`relative w-8 h-8 rounded-full flex items-center justify-center transition cursor-pointer ${
                   geminiApiKey
-                    ? "bg-amber-400 text-neutral-950 font-black hover:bg-amber-300"
-                    : "bg-emerald-900/80 hover:bg-emerald-800 text-emerald-200 border border-emerald-600/50"
+                    ? "bg-amber-400 text-neutral-950 font-bold hover:bg-amber-300 shadow-sm"
+                    : "bg-white/10 hover:bg-white/20 text-white"
                 }`}
-                title="Configurar IA Real (Google Gemini)"
+                title={geminiApiKey ? "Google Gemini IA Activa (Click para configurar)" : "Conectar Google Gemini IA"}
               >
-                <SparklesIcon className={`w-3 h-3 ${geminiApiKey ? "text-neutral-950" : "text-amber-300"}`} />
-                <span>{geminiApiKey ? "Gemini" : "IA"}</span>
+                <Sparkles className="w-4 h-4" />
+                {geminiApiKey && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#075e54]"></span>
+                )}
               </button>
 
               <button
                 type="button"
-                onClick={() => setIsHumanMode(!isHumanMode)}
-                className={`text-[10px] font-bold px-2 py-1 rounded-full transition cursor-pointer flex items-center gap-1 shadow-2xs ${
-                  isHumanMode
-                    ? "bg-amber-400 text-neutral-950 font-black"
-                    : "bg-emerald-900/80 hover:bg-emerald-800 text-emerald-200 border border-emerald-600/50"
-                }`}
-                title={isHumanMode ? "Cajero humano atendiendo" : "Asistente automático"}
-              >
-                <span>{isHumanMode ? "👨‍💼 Cajero" : "🤖 Auto"}</span>
-              </button>
-
-              <button
                 onClick={() => setIsAiSimulatorOpen(false)}
-                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer ml-0.5"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer"
                 title="Cerrar chat"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
 
+          {/* WhatsApp Secondary Info / Mode Ribbon */}
+          <div className="bg-[#054c44] text-emerald-100 px-4 py-1.5 flex items-center justify-between text-xs border-b border-emerald-950/40">
+            <div className="flex items-center gap-2 truncate">
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                isHumanMode 
+                  ? "bg-amber-400 text-neutral-950" 
+                  : geminiApiKey 
+                    ? "bg-emerald-800 text-emerald-200 border border-emerald-600/50" 
+                    : "bg-emerald-900/80 text-emerald-300"
+              }`}>
+                {isHumanMode ? "👨‍💼 Modo Cajero" : geminiApiKey ? "✨ Google Gemini IA" : "🤖 IA Local Activa"}
+              </span>
+              <span className="text-[10px] text-emerald-200/70 hidden sm:inline">•</span>
+              <span className="text-[10px] text-emerald-200/80 font-mono truncate hidden sm:inline">{storeConfig.phoneWhatsApp}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsHumanMode(!isHumanMode)}
+              className="text-[10.5px] font-medium text-emerald-200 hover:text-white bg-white/10 hover:bg-white/15 px-2.5 py-0.5 rounded-full transition cursor-pointer flex items-center gap-1 flex-shrink-0"
+              title={isHumanMode ? "Cambiar a Asistente Automático" : "Probar respuesta como Cajero Humano"}
+            >
+              <span>{isHumanMode ? "Pasar a IA 🤖" : "Simular Cajero 👨‍💼"}</span>
+            </button>
+          </div>
+
           {/* Gemini API Key Settings Panel (Collapsible) */}
           {showApiSettings && (
-            <div className="p-3 bg-neutral-900 text-white border-b border-neutral-700 text-xs space-y-2 z-20 shadow-md">
+            <div className="p-3.5 bg-neutral-900 text-white border-b border-neutral-700 text-xs space-y-2.5 z-20 shadow-lg">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 font-bold text-amber-400 text-[11px]">
-                  <SparklesIcon className="w-3.5 h-3.5" />
-                  <span>Conectar IA Real (Google Gemini 1.5 Flash)</span>
+                <div className="flex items-center gap-1.5 font-bold text-amber-400 text-xs">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Conectar IA Avanzada (Google Gemini)</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowApiSettings(false)}
-                  className="text-neutral-400 hover:text-white"
+                  className="text-neutral-400 hover:text-white transition cursor-pointer"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-[10px] text-neutral-300 leading-tight">
-                Ingresa una API Key gratuita de Google AI Studio para que la IA responda con comprensión semántica total a cualquier pregunta. (Si está vacía, se usa el motor local).
+              <p className="text-[10.5px] text-neutral-300 leading-relaxed">
+                Ingresa una API Key gratuita de Google AI Studio para activar razonamiento semántico libre y responder cualquier pregunta en lenguaje natural. Si está vacía o sin red, opera el motor local optimizado.
               </p>
               <div className="flex items-center gap-1.5">
                 <input
@@ -647,32 +808,29 @@ REGLAS DE RESPUESTA EN WHATSAPP:
                 />
                 <button
                   type="button"
-                  onClick={() => {
-                    const clean = tempApiKey.trim();
-                    setGeminiApiKey(clean);
-                    if (clean) {
-                      localStorage.setItem("omnistore_gemini_api_key", clean);
-                      toast.success("¡Gemini 1.5 Flash activado en el agente!");
-                    } else {
-                      localStorage.removeItem("omnistore_gemini_api_key");
-                      toast.info("Modo IA Local activado.");
-                    }
-                    setShowApiSettings(false);
-                  }}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer shadow-xs"
+                  disabled={isTestingKey}
+                  onClick={handleSaveAndTestApiKey}
+                  className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer shadow-xs flex items-center gap-1"
                 >
-                  Guardar
+                  {isTestingKey ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Validando...</span>
+                    </>
+                  ) : (
+                    <span>Guardar</span>
+                  )}
                 </button>
               </div>
-              <div className="text-[9px] text-neutral-400 flex items-center justify-between pt-0.5">
+              <div className="text-[9.5px] text-neutral-400 flex items-center justify-between pt-0.5">
                 <a
                   href="https://aistudio.google.com/app/apikey"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-400 hover:underline flex items-center gap-0.5"
+                  className="text-emerald-400 hover:underline flex items-center gap-1 font-medium"
                 >
-                  <span>Obtener clave gratis en aistudio.google.com</span>
-                  <ExternalLink className="w-2.5 h-2.5" />
+                  <span>Crear clave gratis en aistudio.google.com</span>
+                  <ExternalLink className="w-3 h-3" />
                 </a>
                 {geminiApiKey && (
                   <button
@@ -684,9 +842,9 @@ REGLAS DE RESPUESTA EN WHATSAPP:
                       toast.info("Clave removida. Usando motor local.");
                       setShowApiSettings(false);
                     }}
-                    className="text-rose-400 hover:underline cursor-pointer"
+                    className="text-rose-400 hover:underline cursor-pointer font-medium"
                   >
-                    Desconectar
+                    Desconectar clave
                   </button>
                 )}
               </div>
@@ -697,8 +855,8 @@ REGLAS DE RESPUESTA EN WHATSAPP:
           <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[radial-gradient(#d1d7db_1px,transparent_1px)] [background-size:16px_16px]">
             {/* Encryption notice */}
             <div className="text-center">
-              <span className="bg-[#ffeecd] text-neutral-700 text-[10px] px-3 py-1 rounded-lg inline-block shadow-2xs">
-                🔒 Simulación de Agente IA con datos en vivo de tu tienda
+              <span className="bg-[#ffeecd] text-neutral-700 text-[10px] px-3 py-1 rounded-lg inline-block shadow-2xs font-medium">
+                🔒 Simulación de Asistente WhatsApp con datos reales de la tienda
               </span>
             </div>
 
@@ -718,7 +876,7 @@ REGLAS DE RESPUESTA EN WHATSAPP:
                   >
                     {m.sender === "human_staff" && (
                       <span className="text-[10px] font-bold text-amber-700 block mb-1">
-                        [Operador en Caja]
+                        [Operador en Caja Humana]
                       </span>
                     )}
                     <div>{m.text}</div>
