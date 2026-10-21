@@ -168,27 +168,29 @@ export default function WhatsAppAiSimulatorModal() {
     if (!geminiApiKey || geminiApiKey.trim().length < 10) return null;
 
     const catalogSummary = products
-      .slice(0, 15)
-      .map((p) => `- ${p.name}: ${storeConfig.currency}${p.price.toFixed(2)} (${p.category}) - ${p.description}`)
+      .slice(0, 16)
+      .map((p) => `• ${p.name}: ${storeConfig.currency}${p.price.toFixed(2)} (${p.category}) - ${p.description}`)
       .join("\n");
 
     const systemPrompt = `Eres el asistente virtual oficial de WhatsApp del restaurante "${storeConfig.name}" en Bolivia.
 Giro del negocio: ${storeConfig.badge}.
 Dirección física: ${storeConfig.address}.
 Horarios de atención: ${storeConfig.businessHours?.days || "Lunes a Domingo"} de ${storeConfig.businessHours?.openTime || "11:00"} a ${storeConfig.businessHours?.closeTime || "23:00"}.
-Costo de envío a domicilio (Delivery): ${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)} a toda la zona de cobertura.
-Métodos de pago aceptados:
-1. QR Simple Interoperable (Banca Móvil de Bolivia: BNB, BCP, Banco Unión, Mercantil, etc. 0% comisión).
-2. Efectivo al recibir en mano.
-(NO aceptamos tarjetas en línea para evitar comisiones).
+Costo de envío a domicilio (Delivery): ${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)} a toda la zona de cobertura habitual.
+Métodos de cobro:
+1. QR Simple Interoperable oficial (Banca Móvil de Bolivia: BNB, BCP, Banco Unión, Mercantil, etc.) con 0% comisión y verificación instantánea.
+2. Efectivo al recibir en mano (contra entrega).
+(NO aceptamos tarjetas en línea para evitar comisiones a los clientes).
 Menú y catálogo:
 ${catalogSummary}
 
-Instrucciones de comportamiento:
-1. Sé muy amable, servicial y habla en español natural (latinoamericano/boliviano), usando formato de WhatsApp (negritas con asteriscos, emojis y listas).
-2. Si el cliente pregunta "¿cuánto cuesta el delivery?", "¿dónde están ubicados?", "¿qué horario tienen?" o "¿qué métodos de pago aceptan?", dale la respuesta exacta de inmediato.
-3. Si el cliente pide platos específicos (ej. "1 ojo de bife angus", "quiero pedir..."), toma nota del pedido, menciona el total estimado y dile que su pedido pasa a atención del cajero para confirmación en cocina y emisión del QR Simple oficial.
-4. Mantén tus respuestas claras y breves (máximo 3 párrafos cortos).`;
+REGLAS DE RESPUESTA EN WHATSAPP:
+1. Sé muy educado, cálido, ágil y habla en español latinoamericano natural.
+2. Usa formato de WhatsApp: negritas con asteriscos (*ejemplo*), viñetas con emojis y saltos de línea ordenados.
+3. Respuestas concisas: máximo 2 a 3 párrafos cortos. En WhatsApp los clientes buscan respuestas rápidas.
+4. Si el cliente pregunta "¿cuánto cuesta el delivery?", dale directamente el costo exacto (${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)}) y la dirección desde donde despachas.
+5. Si pregunta por ubicación, horarios o formas de pago, responde directo con los datos oficiales.
+6. Si el cliente pide platos específicos o dice qué desea ordenar (ej. "1 ojo de bife angus", "quiero 2 hamburguesas"), toma nota con el total estimado y explícale que su pedido pasará ahora a atención del cajero para confirmar en cocina y emitir su código QR Simple oficial sin comisiones.`;
 
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey.trim()}`;
 
@@ -199,15 +201,41 @@ Instrucciones de comportamiento:
         contents: [
           {
             role: "user",
-            parts: [{ text: `${systemPrompt}\n\nPregunta del cliente: "${userPrompt}"` }]
+            parts: [{ text: `${systemPrompt}\n\n--- MENSAJE DEL CLIENTE EN WHATSAPP ---\n"${userPrompt}"` }]
           }
-        ]
+        ],
+        generationConfig: {
+          temperature: 0.6,
+          maxOutputTokens: 350,
+        }
       })
     });
 
-    if (!res.ok) throw new Error("Gemini API request failed");
+    if (!res.ok) {
+      console.warn("Gemini API error status:", res.status);
+      throw new Error(`Gemini API error: ${res.status}`);
+    }
     const data = await res.json();
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    // Check if the conversation is an order placement
+    const lowerReply = (reply || "").toLowerCase();
+    const lowerPrompt = userPrompt.toLowerCase();
+    if (
+      lowerReply.includes("cajero") ||
+      lowerReply.includes("confirmación") ||
+      lowerReply.includes("confirmacion") ||
+      lowerPrompt.includes("quiero") ||
+      lowerPrompt.includes("dame") ||
+      lowerPrompt.includes("bife") ||
+      lowerPrompt.includes("pedido") ||
+      lowerPrompt.includes("orden") ||
+      /^\s*\d+[\s\w]/.test(lowerPrompt)
+    ) {
+      setPendingCashierApproval(true);
+    }
+
+    return reply || null;
   };
 
   // Local intelligent simulated AI engine grounded on current store data
@@ -526,57 +554,66 @@ Instrucciones de comportamiento:
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           className="relative bg-[#efeae2] w-full max-w-md rounded-3xl shadow-2xl overflow-hidden z-10 border border-neutral-300 flex flex-col h-[650px] max-h-[92vh]"
         >
-          {/* WhatsApp Header */}
-          <div className="bg-[#075e54] text-white p-3.5 flex items-center justify-between shadow-sm">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-full overflow-hidden bg-white/20 border border-white/30 flex-shrink-0">
+          {/* WhatsApp Header: Clean, balanced, native spacing */}
+          <div className="bg-[#075e54] text-white px-3.5 py-2.5 flex items-center justify-between shadow-xs gap-2 border-b border-[#054c44]">
+            {/* Left: Avatar & Identity (flex-1 with truncate so it never squishes) */}
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div className="w-9 h-9 rounded-full overflow-hidden bg-white/20 border border-white/30 flex-shrink-0 shadow-2xs">
                 <img src={storeConfig.logoUrl} alt="Logo" className="w-full h-full object-cover" />
               </div>
-              <div>
-                <h4 className="font-bold text-xs sm:text-sm leading-tight flex items-center gap-1.5">
-                  <span>{storeConfig.name}</span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-bold text-xs sm:text-sm leading-tight flex items-center gap-1.5 truncate">
+                  <span className="truncate">{storeConfig.name}</span>
                 </h4>
-                <div className="text-[10px] text-emerald-100 flex items-center gap-1">
-                  <span>{isHumanMode ? "👨‍💼 Cajero Humano en Línea" : "🤖 Asistente IA WhatsApp"}</span>
-                  <span>•</span>
-                  <span>{storeConfig.phoneWhatsApp}</span>
+                <div className="text-[10px] text-emerald-200/90 truncate flex items-center gap-1.5 leading-none mt-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0 animate-pulse"></span>
+                  <span className="truncate">
+                    {isHumanMode ? "Cajero en línea" : geminiApiKey ? "Gemini IA activa" : "En línea"}
+                  </span>
+                  <span className="opacity-60">•</span>
+                  <span className="truncate text-[9.5px] opacity-80">{storeConfig.phoneWhatsApp}</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            {/* Right: Sleek Action Pills with plenty of breathing room */}
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <button
                 type="button"
                 onClick={() => {
                   setTempApiKey(geminiApiKey);
                   setShowApiSettings(!showApiSettings);
                 }}
-                className={`text-[10px] font-bold px-2 py-1 rounded-lg transition cursor-pointer flex items-center gap-1 ${
-                  geminiApiKey ? "bg-amber-400 text-neutral-950 font-black shadow-xs" : "bg-emerald-800 text-white hover:bg-emerald-700"
+                className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition cursor-pointer flex items-center gap-1 shadow-2xs ${
+                  geminiApiKey
+                    ? "bg-amber-400 text-neutral-950 font-black hover:bg-amber-300"
+                    : "bg-emerald-900/80 hover:bg-emerald-800 text-emerald-200 border border-emerald-600/50"
                 }`}
-                title="Configurar IA Real (Google Gemini 1.5 Flash)"
+                title="Configurar IA Real (Google Gemini)"
               >
-                <SparklesIcon className="w-3.5 h-3.5 text-amber-300" />
-                <span>{geminiApiKey ? "Gemini ON" : "IA Real"}</span>
+                <SparklesIcon className={`w-3 h-3 ${geminiApiKey ? "text-neutral-950" : "text-amber-300"}`} />
+                <span>{geminiApiKey ? "Gemini" : "IA"}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setIsHumanMode(!isHumanMode)}
-                className={`text-[10px] font-bold px-2 py-1 rounded-lg transition cursor-pointer flex items-center gap-1 ${
-                  isHumanMode ? "bg-amber-400 text-neutral-950" : "bg-emerald-800 text-white hover:bg-emerald-700"
+                className={`text-[10px] font-bold px-2 py-1 rounded-full transition cursor-pointer flex items-center gap-1 shadow-2xs ${
+                  isHumanMode
+                    ? "bg-amber-400 text-neutral-950 font-black"
+                    : "bg-emerald-900/80 hover:bg-emerald-800 text-emerald-200 border border-emerald-600/50"
                 }`}
-                title="Alternar entre IA automática y modo cajero humano"
+                title={isHumanMode ? "Cajero humano atendiendo" : "Asistente automático"}
               >
-                <span>{isHumanMode ? "Modo: Cajero" : "Modo: Auto"}</span>
+                <span>{isHumanMode ? "👨‍💼 Cajero" : "🤖 Auto"}</span>
               </button>
 
               <button
                 onClick={() => setIsAiSimulatorOpen(false)}
-                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer"
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer ml-0.5"
+                title="Cerrar chat"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -751,9 +788,11 @@ Instrucciones de comportamiento:
           {/* Quick Prompts Chips */}
           <div className="p-2 bg-white/90 border-t border-neutral-200 flex gap-1.5 overflow-x-auto scrollbar-none">
             {[
+              "¿Cuánto cuesta el delivery?",
+              "¿Qué horarios tienen?",
+              "¿Dónde están ubicados?",
               "Quiero hacer un pedido",
               "Ver catálogo de productos",
-              "¿Cuánto cuesta el delivery?",
               "¿Tienen opciones vegetarianas?",
               "Hablar con el cajero",
             ].map((chip, idx) => (
