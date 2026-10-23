@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useStore } from "../context/StoreContext";
 import { Plus, Check, Eye, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { BorderBeam } from "./ui/BorderBeam";
 
 export default function ProductCard({ product }) {
   const { storeConfig, addToCart, setSelectedProductForDetail, cart } = useStore();
@@ -35,8 +36,21 @@ export default function ProductCard({ product }) {
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.25 }}
       onClick={handleCardClick}
-      className="group relative bg-white rounded-2xl border border-neutral-200/90 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col cursor-pointer"
+      className={`group relative bg-white rounded-2xl border ${
+        product.isFeatured ? "border-amber-300/80 shadow-sm" : "border-neutral-200/90 shadow-xs"
+      } hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col cursor-pointer`}
     >
+      {/* Featured dynamic light beam highlight */}
+      {product.isFeatured && (
+        <BorderBeam
+          size={120}
+          duration={12}
+          borderWidth={1.5}
+          colorFrom="#f59e0b"
+          colorTo="#ec4899"
+        />
+      )}
+
       {/* Product Image Frame */}
       <div className="relative aspect-4/3 sm:aspect-square bg-neutral-100 overflow-hidden">
         {/* Skeleton shimmer loader while image is downloading */}

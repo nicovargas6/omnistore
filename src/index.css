@@ -67,6 +67,28 @@ button:active:not(:disabled), a:active:not([aria-disabled="true"]) {
   }
 }
 
+/* Border Beam Animation (Vengeance UI) */
+@keyframes border-beam {
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+/* Aurora Rays Animation (Vengeance UI) */
+@keyframes aurora-bg {
+  0% {
+    background-position: 50% 50%, 50% 50%;
+  }
+  100% {
+    background-position: 350% 50%, 350% 50%;
+  }
+}
+
+.animate-aurora-bg {
+  animation: aurora-bg 45s linear infinite;
+  will-change: background-position;
+}
+
 .skeleton-shimmer {
   position: relative;
   overflow: hidden;

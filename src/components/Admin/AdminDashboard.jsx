@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import StatsCounter from "../ui/StatsCounter";
 
 export default function AdminDashboard() {
   const { 
@@ -214,12 +215,16 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-black text-neutral-950 font-mono truncate">
-            {storeConfig.currency} {totalRevenue.toFixed(2)}
+            <StatsCounter
+              value={totalRevenue}
+              prefix={`${storeConfig.currency} `}
+              decimals={2}
+            />
           </div>
           <div className="text-[10.5px] text-emerald-700 font-semibold mt-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5">
             <span className="flex items-center gap-1 truncate">
               <TrendingUp className="w-3 h-3 flex-shrink-0" />
-              <span>{orders.length} pedidos</span>
+              <span><StatsCounter value={orders.length} decimals={0} /> pedidos</span>
             </span>
             <span className="text-[9.5px] text-neutral-400 group-hover:text-emerald-600 font-bold underline">
               Ver reporte
@@ -236,7 +241,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-black text-neutral-950">
-            {activeOrders.length}
+            <StatsCounter value={activeOrders.length} decimals={0} />
           </div>
           <div className="text-[10px] sm:text-[11px] text-neutral-500 mt-1 truncate">
             Requieren atención o preparación
@@ -252,7 +257,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-black text-neutral-950">
-            {products.length}
+            <StatsCounter value={products.length} decimals={0} />
           </div>
           <div className="text-[10px] sm:text-[11px] text-neutral-500 mt-1 truncate">
             En {categories.length} categorías
@@ -268,7 +273,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-black text-amber-700">
-            {lowStockProducts.length}
+            <StatsCounter value={lowStockProducts.length} decimals={0} />
           </div>
           <div className="text-[10px] sm:text-[11px] text-neutral-500 mt-1 truncate">
             {outOfStockProducts.length} agotados, {lowStockProducts.length - outOfStockProducts.length} por agotarse
@@ -318,10 +323,10 @@ export default function AdminDashboard() {
               Total Recaudado Hoy
             </span>
             <div className="text-xl font-black text-neutral-950 font-mono mt-1">
-              {storeConfig.currency} {totalRevenue.toFixed(2)}
+              <StatsCounter value={totalRevenue} prefix={`${storeConfig.currency} `} decimals={2} />
             </div>
             <span className="text-[11px] text-neutral-500 mt-0.5 block">
-              {orders.length} pedidos finalizados
+              <StatsCounter value={orders.length} decimals={0} /> pedidos finalizados
             </span>
           </div>
 
@@ -330,7 +335,7 @@ export default function AdminDashboard() {
               Cobrado por QR Simple (Banco)
             </span>
             <div className="text-xl font-black text-emerald-900 font-mono mt-1">
-              {storeConfig.currency} {qrTotal.toFixed(2)}
+              <StatsCounter value={qrTotal} prefix={`${storeConfig.currency} `} decimals={2} />
             </div>
             <span className="text-[11px] text-emerald-700 font-medium mt-0.5 block">
               Directo a cuenta bancaria
@@ -342,7 +347,7 @@ export default function AdminDashboard() {
               Efectivo en Mano / Caja
             </span>
             <div className="text-xl font-black text-amber-900 font-mono mt-1">
-              {storeConfig.currency} {cashTotal.toFixed(2)}
+              <StatsCounter value={cashTotal} prefix={`${storeConfig.currency} `} decimals={2} />
             </div>
             <span className="text-[11px] text-amber-700 font-medium mt-0.5 block">
               Físico recibido en mostrador/delivery
