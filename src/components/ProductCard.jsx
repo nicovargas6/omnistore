@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useStore } from "../context/StoreContext";
 import { Plus, Check, Eye, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
-import { BorderBeam } from "./ui/BorderBeam";
 
 export default function ProductCard({ product }) {
   const { storeConfig, addToCart, setSelectedProductForDetail, cart } = useStore();
@@ -37,20 +36,9 @@ export default function ProductCard({ product }) {
       transition={{ duration: 0.25 }}
       onClick={handleCardClick}
       className={`group relative bg-white rounded-2xl border ${
-        product.isFeatured ? "border-amber-300/80 shadow-sm" : "border-neutral-200/90 shadow-xs"
+        product.isFeatured ? "border-amber-300/80 shadow-xs ring-1 ring-amber-300/30" : "border-neutral-200/90 shadow-xs"
       } hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col cursor-pointer`}
     >
-      {/* Featured dynamic light beam highlight */}
-      {product.isFeatured && (
-        <BorderBeam
-          size={120}
-          duration={12}
-          borderWidth={1.5}
-          colorFrom="#f59e0b"
-          colorTo="#ec4899"
-        />
-      )}
-
       {/* Product Image Frame */}
       <div className="relative aspect-4/3 sm:aspect-square bg-neutral-100 overflow-hidden">
         {/* Skeleton shimmer loader while image is downloading */}
@@ -122,11 +110,11 @@ export default function ProductCard({ product }) {
         <div className="pt-2 border-t border-neutral-100 flex items-center justify-between gap-2">
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-base sm:text-lg font-bold text-neutral-950">
+              <span className="text-base sm:text-lg font-bold text-neutral-950 tabular-nums font-mono">
                 {storeConfig.currency} {product.price.toFixed(2)}
               </span>
               {product.comparePrice && product.comparePrice > product.price && (
-                <span className="text-xs text-neutral-400 line-through">
+                <span className="text-xs text-neutral-400 line-through tabular-nums font-mono">
                   {storeConfig.currency} {product.comparePrice.toFixed(2)}
                 </span>
               )}
@@ -137,7 +125,8 @@ export default function ProductCard({ product }) {
           </div>
 
           {/* Quick Add Button */}
-          <button
+          <motion.button
+            whileTap={{ scale: 0.92 }}
             onClick={handleQuickAdd}
             disabled={isOutOfStock}
             className={`flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition shadow-xs cursor-pointer ${
@@ -145,7 +134,7 @@ export default function ProductCard({ product }) {
                 ? "bg-neutral-100 text-neutral-400 cursor-not-allowed"
                 : inCartItem
                 ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                : "bg-neutral-900 hover:bg-neutral-800 text-white active:scale-95"
+                : "bg-neutral-900 hover:bg-neutral-800 text-white"
             }`}
             title={isOutOfStock ? "Producto agotado" : "Añadir al pedido"}
           >
@@ -160,7 +149,7 @@ export default function ProductCard({ product }) {
                 <span className="hidden sm:inline">Agregar</span>
               </>
             )}
-          </button>
+          </motion.button>
         </div>
       </div>
     </motion.div>

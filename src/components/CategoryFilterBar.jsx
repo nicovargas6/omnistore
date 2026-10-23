@@ -61,13 +61,20 @@ export default function CategoryFilterBar({
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         <button
           onClick={() => onSelectCategory("all")}
-          className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer border ${
+          className={`relative flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer border ${
             selectedCategory === "all"
-              ? "bg-neutral-900 text-white border-neutral-900 shadow-sm"
-              : "bg-white text-neutral-700 hover:bg-neutral-100 border-neutral-200"
+              ? "text-white border-neutral-900 shadow-sm"
+              : "bg-white text-neutral-700 hover:bg-neutral-50 border-neutral-200"
           }`}
         >
-          Todos ({totalProductsCount})
+          {selectedCategory === "all" && (
+            <motion.div
+              layoutId="activeCategoryPill"
+              className="absolute inset-0 bg-neutral-900 rounded-[inherit] -z-10"
+              transition={{ type: "spring", stiffness: 380, damping: 32 }}
+            />
+          )}
+          <span>Todos ({totalProductsCount})</span>
         </button>
 
         {categories.map((cat) => {
@@ -77,16 +84,25 @@ export default function CategoryFilterBar({
             <button
               key={cat}
               onClick={() => onSelectCategory(cat)}
-              className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer border flex items-center gap-1.5 ${
+              className={`relative flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer border flex items-center gap-1.5 ${
                 isSelected
-                  ? "bg-neutral-900 text-white border-neutral-900 shadow-sm"
-                  : "bg-white text-neutral-700 hover:bg-neutral-100 border-neutral-200"
+                  ? "text-white border-neutral-900 shadow-sm"
+                  : "bg-white text-neutral-700 hover:bg-neutral-50 border-neutral-200"
               }`}
             >
+              {isSelected && (
+                <motion.div
+                  layoutId="activeCategoryPill"
+                  className="absolute inset-0 bg-neutral-900 rounded-[inherit] -z-10"
+                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                />
+              )}
               <span>{cat}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                isSelected ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500"
-              }`}>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full transition-colors ${
+                  isSelected ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500"
+                }`}
+              >
                 {count}
               </span>
             </button>

@@ -2,8 +2,6 @@ import React from "react";
 import { useStore } from "../context/StoreContext";
 import { ArrowDown, MessageCircle, ShieldCheck, Zap, Truck, Sparkles, Edit3 } from "lucide-react";
 import { motion } from "framer-motion";
-import { BorderBeam } from "./ui/BorderBeam";
-import { AnimatedRays } from "./ui/AnimatedRays";
 import { InteractiveHoverButton } from "./ui/InteractiveHoverButton";
 
 export default function Hero({ onExploreClick }) {
@@ -28,7 +26,6 @@ export default function Hero({ onExploreClick }) {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
-        <AnimatedRays />
       </div>
 
       {/* Hero Content */}
@@ -38,11 +35,10 @@ export default function Hero({ onExploreClick }) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="relative overflow-hidden inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/25 text-white text-xs font-semibold mb-4 tracking-wide shadow-sm"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/25 text-white text-xs font-semibold mb-4 tracking-wide shadow-sm"
         >
-          <BorderBeam size={80} duration={8} borderWidth={1.5} colorFrom="#fbbf24" colorTo="#f43f5e" />
-          <Sparkles className="w-3.5 h-3.5 text-amber-300 relative z-10" />
-          <span className="relative z-10">{storeConfig.heroBadge || "Catálogo & Venta Directa"}</span>
+          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+          <span>{storeConfig.heroBadge || "Catálogo & Venta Directa"}</span>
         </motion.div>
 
         {/* Headline */}
@@ -72,21 +68,22 @@ export default function Hero({ onExploreClick }) {
           transition={{ duration: 0.4, delay: 0.3 }}
           className="flex flex-wrap items-center justify-center sm:justify-start gap-3 w-full sm:w-auto"
         >
-          <InteractiveHoverButton
-            onClick={onExploreClick}
-            icon={ArrowDown}
-            className="w-full sm:w-auto"
-          >
-            Explorar Catálogo
-          </InteractiveHoverButton>
-
           <button
-            onClick={handleWhatsAppClick}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3.5 rounded-xl font-semibold text-sm shadow-md transition cursor-pointer border border-emerald-400/30"
+            onClick={onExploreClick}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white text-neutral-900 hover:bg-neutral-100 px-6 py-3.5 rounded-xl font-bold text-sm shadow-lg transition cursor-pointer"
           >
-            <MessageCircle className="w-4 h-4" />
-            <span>Consultar por WhatsApp</span>
+            <span>Explorar Catálogo</span>
+            <ArrowDown className="w-4 h-4" />
           </button>
+
+          <InteractiveHoverButton
+            onClick={handleWhatsAppClick}
+            icon={MessageCircle}
+            className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-400/40"
+            dotClassName="bg-emerald-300"
+          >
+            Consultar por WhatsApp
+          </InteractiveHoverButton>
 
           <button
             onClick={() => {

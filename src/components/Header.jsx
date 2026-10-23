@@ -201,9 +201,15 @@ export default function Header() {
             >
               <ShoppingBag className="w-4 h-4" />
               <span className="hidden sm:inline">Mi Pedido</span>
-              <span className="bg-amber-400 text-neutral-950 font-bold px-2 py-0.5 rounded-full text-xs">
+              <motion.span
+                key={cartCount}
+                initial={{ scale: 0.6 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 450, damping: 20 }}
+                className="bg-amber-400 text-neutral-950 font-bold px-2 py-0.5 rounded-full text-xs"
+              >
                 {cartCount}
-              </span>
+              </motion.span>
             </motion.button>
           )}
         </div>

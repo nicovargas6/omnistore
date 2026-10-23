@@ -285,19 +285,20 @@ export default function CartDrawer() {
 
                   <div className="flex justify-between text-sm font-bold text-neutral-950 pt-2 border-t border-neutral-200">
                     <span>Total estimado:</span>
-                    <span className="text-base">
+                    <span className="text-base font-mono tabular-nums">
                       {storeConfig.currency} {estimatedTotal.toFixed(2)}
                     </span>
                   </div>
                 </div>
 
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleStartCheckout}
-                  className="w-full py-3.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-bold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                  className="w-full py-3.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-bold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>Continuar al Checkout</span>
                   <ArrowRight className="w-4 h-4" />
-                </button>
+                </motion.button>
               </div>
             )}
           </motion.div>
