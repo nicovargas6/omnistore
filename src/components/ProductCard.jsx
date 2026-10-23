@@ -35,9 +35,7 @@ export default function ProductCard({ product }) {
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.25 }}
       onClick={handleCardClick}
-      className={`group relative bg-white rounded-2xl border ${
-        product.isFeatured ? "border-amber-300/80 shadow-xs ring-1 ring-amber-300/30" : "border-neutral-200/90 shadow-xs"
-      } hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col cursor-pointer`}
+      className="group relative bg-white rounded-2xl border border-neutral-200/90 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col cursor-pointer"
     >
       {/* Product Image Frame */}
       <div className="relative aspect-4/3 sm:aspect-square bg-neutral-100 overflow-hidden">

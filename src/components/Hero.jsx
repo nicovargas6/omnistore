@@ -68,19 +68,22 @@ export default function Hero({ onExploreClick }) {
           transition={{ duration: 0.4, delay: 0.3 }}
           className="flex flex-wrap items-center justify-center sm:justify-start gap-3 w-full sm:w-auto"
         >
-          <button
+          <InteractiveHoverButton
             onClick={onExploreClick}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white text-neutral-900 hover:bg-neutral-100 px-6 py-3.5 rounded-xl font-bold text-sm shadow-lg transition cursor-pointer"
+            icon={ArrowDown}
+            className="w-full sm:w-auto bg-white text-neutral-900 border-white/80 shadow-lg"
+            dotClassName="bg-neutral-900"
+            activeTextClassName="text-white"
           >
-            <span>Explorar Catálogo</span>
-            <ArrowDown className="w-4 h-4" />
-          </button>
+            Explorar Catálogo
+          </InteractiveHoverButton>
 
           <InteractiveHoverButton
             onClick={handleWhatsAppClick}
             icon={MessageCircle}
             className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-400/40"
-            dotClassName="bg-emerald-300"
+            dotClassName="bg-emerald-800"
+            activeTextClassName="text-white"
           >
             Consultar por WhatsApp
           </InteractiveHoverButton>
