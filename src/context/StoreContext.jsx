@@ -43,6 +43,65 @@ export function StoreProvider({ children }) {
     welcomeMessage: "¡Hola! Soy el asistente virtual inteligente. ¿En qué te puedo ayudar hoy? Conozco todo el catálogo, precios, horarios y zonas de envío.",
   });
 
+  // Compliance & Legal Modals
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [legalDocType, setLegalDocType] = useState("privacy"); // 'privacy' | 'terms'
+  const [isPrivacyCenterOpen, setIsPrivacyCenterOpen] = useState(false);
+
+  const openLegalDoc = (type = "privacy") => {
+    setLegalDocType(type);
+    setLegalModalOpen(true);
+  };
+
+  const closeLegalDoc = () => {
+    setLegalModalOpen(false);
+  };
+
+  const openPrivacyCenter = () => {
+    setIsPrivacyCenterOpen(true);
+  };
+
+  const closePrivacyCenter = () => {
+    setIsPrivacyCenterOpen(false);
+  };
+
+  const navigateTo = (mode) => {
+    setViewMode(mode);
+    if (mode === "privacy") {
+      window.history.pushState(null, "", "/privacidad");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (mode === "terms") {
+      window.history.pushState(null, "", "/terminos");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (mode === "storefront") {
+      window.history.pushState(null, "", "/");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (mode === "admin") {
+      window.history.pushState(null, "", "/admin");
+    }
+  };
+
+  // Synchronize browser URL with views (Back/Forward buttons & direct link support)
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      if (path === "/privacidad" || hash === "#privacidad") {
+        setViewMode("privacy");
+      } else if (path === "/terminos" || hash === "#terminos") {
+        setViewMode("terms");
+      } else if (path === "/admin" || hash === "#admin") {
+        setViewMode("admin");
+      } else if (path === "/" || path === "") {
+        setViewMode("storefront");
+      }
+    };
+
+    handleUrlChange();
+    window.addEventListener("popstate", handleUrlChange);
+    return () => window.removeEventListener("popstate", handleUrlChange);
+  }, []);
+
   const [soundAlertsEnabled, setSoundAlertsEnabled] = useState(true);
 
   const toggleSoundAlerts = () => {
@@ -630,6 +689,17 @@ export function StoreProvider({ children }) {
         toggleSoundAlerts,
         playOrderBell: playOrderChime,
         isStoreOpen,
+        setOrders,
+        setCart,
+        // Legal & Compliance
+        legalModalOpen,
+        legalDocType,
+        openLegalDoc,
+        closeLegalDoc,
+        isPrivacyCenterOpen,
+        openPrivacyCenter,
+        closePrivacyCenter,
+        navigateTo,
       }}
     >
       {children}

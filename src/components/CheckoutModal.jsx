@@ -35,6 +35,7 @@ export default function CheckoutModal() {
     appliedCoupon,
     discountAmount,
     isStoreOpen,
+    openLegalDoc,
   } = useStore();
 
   const [formData, setFormData] = useState({
@@ -48,6 +49,7 @@ export default function CheckoutModal() {
 
   const [deliveryLocation, setDeliveryLocation] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [acceptedConsent, setAcceptedConsent] = useState(false);
 
   // QR Screen state
   const [checkoutStep, setCheckoutStep] = useState("form"); // 'form' | 'qr_payment' | 'qr_success'
@@ -98,6 +100,11 @@ export default function CheckoutModal() {
     e.preventDefault();
     if (!formData.name.trim() || !formData.phone.trim()) {
       toast.error("Por favor completa tu nombre y teléfono.");
+      return;
+    }
+
+    if (!acceptedConsent) {
+      toast.error("Debes aceptar la Política de Privacidad y el tratamiento de datos para confirmar tu pedido.");
       return;
     }
 
@@ -433,6 +440,47 @@ export default function CheckoutModal() {
                       {storeConfig.currency} {grandTotal.toFixed(2)}
                     </span>
                   </div>
+                </div>
+
+                {/* Informed Legal Consent Checkbox (RGPD / Habeas Data Compliance) */}
+                <div className="pt-1">
+                  <label className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer select-none transition ${
+                    !acceptedConsent ? "bg-amber-50/50 border-amber-200/80" : "bg-neutral-50 border-neutral-200"
+                  }`}>
+                    <input
+                      type="checkbox"
+                      checked={acceptedConsent}
+                      onChange={(e) => setAcceptedConsent(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 cursor-pointer"
+                    />
+                    <span className="text-[11.5px] sm:text-xs text-neutral-600 leading-relaxed">
+                      He leído y acepto la{" "}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openLegalDoc("privacy");
+                        }}
+                        className="font-bold text-neutral-900 underline hover:text-emerald-700 cursor-pointer"
+                      >
+                        Política de Privacidad
+                      </button>{" "}
+                      y los{" "}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openLegalDoc("terms");
+                        }}
+                        className="font-bold text-neutral-900 underline hover:text-emerald-700 cursor-pointer"
+                      >
+                        Términos de Servicio
+                      </button>{" "}
+                      para el procesamiento y entrega de mi pedido.
+                    </span>
+                  </label>
                 </div>
 
                 {/* Submit Action */}

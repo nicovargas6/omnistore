@@ -5,10 +5,24 @@ import AdminLayout from "./components/Admin/AdminLayout";
 import ThermalReceiptModal from "./components/ThermalReceiptModal";
 import OrderTrackingModal from "./components/OrderTrackingModal";
 import WhatsAppAiSimulatorModal from "./components/WhatsAppAiSimulatorModal";
+import LegalModal from "./components/Legal/LegalModal";
+import DataPrivacyCenterModal from "./components/Legal/DataPrivacyCenterModal";
+import CookieBanner from "./components/Legal/CookieBanner";
+import PrivacyPolicyView from "./components/Legal/PrivacyPolicyView";
+import TermsOfServiceView from "./components/Legal/TermsOfServiceView";
 import { Toaster } from "sonner";
 
 function AppContent() {
-  const { viewMode } = useStore();
+  const { 
+    viewMode, 
+    legalModalOpen, 
+    legalDocType, 
+    closeLegalDoc, 
+    openLegalDoc,
+    isPrivacyCenterOpen, 
+    closePrivacyCenter,
+    openPrivacyCenter
+  } = useStore();
 
   return (
     <>
@@ -32,7 +46,32 @@ function AppContent() {
       <OrderTrackingModal />
       <WhatsAppAiSimulatorModal />
 
-      {viewMode === "admin" ? <AdminLayout /> : <StorefrontView />}
+      {/* Global Compliance & Privacy Modals */}
+      <LegalModal
+        isOpen={legalModalOpen}
+        docType={legalDocType}
+        onClose={closeLegalDoc}
+        openDataCenter={openPrivacyCenter}
+      />
+      <DataPrivacyCenterModal
+        isOpen={isPrivacyCenterOpen}
+        onClose={closePrivacyCenter}
+        onOpenPrivacyDoc={() => openLegalDoc("privacy")}
+      />
+
+      {/* Floating Cookie Consent Banner */}
+      <CookieBanner onOpenPrivacy={() => openLegalDoc("privacy")} />
+
+      {/* View Routing */}
+      {viewMode === "admin" ? (
+        <AdminLayout />
+      ) : viewMode === "privacy" ? (
+        <PrivacyPolicyView openDataCenter={openPrivacyCenter} />
+      ) : viewMode === "terms" ? (
+        <TermsOfServiceView />
+      ) : (
+        <StorefrontView />
+      )}
     </>
   );
 }

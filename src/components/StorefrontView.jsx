@@ -33,7 +33,10 @@ export default function StorefrontView() {
     switchBusinessPreset,
     activePresetKey,
     features,
-    setIsAiSimulatorOpen
+    setIsAiSimulatorOpen,
+    openLegalDoc,
+    openPrivacyCenter,
+    navigateTo
   } = useStore();
 
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -176,7 +179,7 @@ export default function StorefrontView() {
       <footer className="bg-white border-t border-neutral-200 mt-16 text-xs text-neutral-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Col 1: Store info */}
-          <div className="space-y-3 md:col-span-1">
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200">
                 <img src={storeConfig.logoUrl} alt={storeConfig.name} className="w-full h-full object-cover" />
@@ -186,26 +189,27 @@ export default function StorefrontView() {
             <p className="text-neutral-500 text-xs leading-relaxed">
               {storeConfig.tagline}
             </p>
-            <div className="pt-2 text-[11px] text-neutral-400">
-              Dirección: {storeConfig.address}
+            <div className="pt-1 text-[11px] text-neutral-400 space-y-1">
+              <div>📍 {storeConfig.address}</div>
+              <div>📱 WhatsApp: {storeConfig.phoneWhatsApp}</div>
             </div>
           </div>
 
           {/* Col 2: Business archetypes demo picker */}
-          <div className="space-y-2 md:col-span-2">
+          <div className="space-y-2">
             <div className="font-bold text-neutral-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Giro de Negocio para este Prototipo</span>
+              <span>Giro de Negocio</span>
             </div>
             <p className="text-neutral-500 text-xs">
-              Haz clic para transformar este prototipo en otro modelo de negocio al instante:
+              Alterna entre modelos preconfigurados:
             </p>
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              {Object.values(BUSINESS_PRESETS).map((p) => (
+            <div className="grid grid-cols-1 gap-1.5 pt-1">
+              {Object.values(BUSINESS_PRESETS).slice(0, 3).map((p) => (
                 <button
                   key={p.id}
                   onClick={() => switchBusinessPreset(p.id)}
-                  className={`p-2.5 rounded-xl border text-left text-xs transition cursor-pointer flex items-center justify-between ${
+                  className={`p-2 rounded-xl border text-left text-xs transition cursor-pointer flex items-center justify-between ${
                     p.id === activePresetKey
                       ? "bg-neutral-900 text-white border-neutral-900 font-semibold shadow-2xs"
                       : "bg-neutral-50 hover:bg-neutral-100 border-neutral-200 text-neutral-700"
@@ -218,13 +222,50 @@ export default function StorefrontView() {
             </div>
           </div>
 
-          {/* Col 3: Admin shortcuts */}
+          {/* Col 3: Compliance & Legal Information */}
+          <div className="space-y-3">
+            <div className="font-bold text-neutral-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Privacidad & Legal</span>
+            </div>
+            <ul className="space-y-2 text-xs text-neutral-600">
+              <li>
+                <button
+                  onClick={() => navigateTo("privacy")}
+                  className="hover:text-neutral-900 hover:underline transition cursor-pointer flex items-center gap-1 text-left"
+                >
+                  <span>• Política de Privacidad</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => navigateTo("terms")}
+                  className="hover:text-neutral-900 hover:underline transition cursor-pointer flex items-center gap-1 text-left"
+                >
+                  <span>• Términos y Condiciones</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={openPrivacyCenter}
+                  className="hover:text-emerald-700 hover:underline transition cursor-pointer flex items-center gap-1 font-semibold text-emerald-800 text-left"
+                >
+                  <span>• Centro de Privacidad (Derecho al Olvido)</span>
+                </button>
+              </li>
+              <li className="text-[11px] text-neutral-400 pt-1 leading-snug">
+                Protección de datos conforme a ley. Cobro seguro con QR Simple (0% comisiones).
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 4: Admin shortcuts */}
           <div className="space-y-3">
             <div className="font-bold text-neutral-900 text-xs uppercase tracking-wider">
-              Control & Administración
+              Control & Gestión
             </div>
             <p className="text-neutral-500 text-xs">
-              Accede al panel de control para editar precios, fotos, categorías y despachar pedidos.
+              Accede al panel central para gestionar comandas, inventario y métricas en vivo.
             </p>
             <button
               onClick={() => {
@@ -239,8 +280,21 @@ export default function StorefrontView() {
           </div>
         </div>
 
-        <div className="border-t border-neutral-100 py-4 text-center text-neutral-400 text-[11px]">
-          OmniStore Prototipo Web Adaptable • Diseñado con alta estética y funcionalidad para cualquier negocio
+        <div className="border-t border-neutral-200/80 py-4 px-4 text-center text-neutral-500 text-[11px] flex flex-col sm:flex-row items-center justify-between max-w-7xl mx-auto gap-2">
+          <span>© {new Date().getFullYear()} {storeConfig.name}. Todos los derechos reservados.</span>
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigateTo("privacy")} className="hover:underline cursor-pointer">
+              Privacidad
+            </button>
+            <span>•</span>
+            <button onClick={() => navigateTo("terms")} className="hover:underline cursor-pointer">
+              Términos
+            </button>
+            <span>•</span>
+            <button onClick={openPrivacyCenter} className="hover:underline cursor-pointer text-emerald-700 font-semibold">
+              Mis Datos Personales
+            </button>
+          </div>
         </div>
       </footer>
 

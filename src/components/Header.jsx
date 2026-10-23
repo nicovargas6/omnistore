@@ -25,7 +25,8 @@ export default function Header() {
     switchBusinessPreset,
     features,
     openTracking,
-    isStoreOpen
+    isStoreOpen,
+    openPrivacyCenter,
   } = useStore();
 
   const [isPresetDropdownOpen, setIsPresetDropdownOpen] = useState(false);
@@ -64,6 +65,16 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Privacy & My Data Center */}
+            <button
+              onClick={openPrivacyCenter}
+              className="flex items-center gap-1.5 text-neutral-300 hover:text-white px-2 py-0.5 rounded-md text-[11px] font-medium transition cursor-pointer hover:bg-neutral-800"
+              title="Centro de Privacidad y gestión de datos personales"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden md:inline">Mis Datos</span>
+            </button>
+
             {/* Optional Feature: Order Tracking in Top bar */}
             {features.orderTracking && viewMode === "storefront" && (
               <button
