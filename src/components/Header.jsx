@@ -10,7 +10,8 @@ import {
   ChevronDown,
   Sparkles,
   LayoutDashboard,
-  Clock
+  Clock,
+  ShieldCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
