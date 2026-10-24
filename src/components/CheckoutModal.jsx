@@ -44,16 +44,18 @@ export default function CheckoutModal() {
   const [createdQrOrder, setCreatedQrOrder] = useState(null);
 
   const [formData, setFormData] = useState(() => {
+    let savedName = "";
     let savedPhone = "";
     let savedAddress = "";
     try {
+      savedName = localStorage.getItem("omnistore_saved_name") || "";
       savedPhone = localStorage.getItem("omnistore_saved_phone") || "";
       savedAddress = localStorage.getItem("omnistore_saved_address") || "";
     } catch {
       // ignore
     }
     return {
-      name: "",
+      name: savedName,
       phone: savedPhone,
       orderType: storeConfig.orderTypes ? storeConfig.orderTypes[0] : "Delivery a Domicilio",
       address: savedAddress,
@@ -62,7 +64,13 @@ export default function CheckoutModal() {
     };
   });
 
-  const [deliveryLocation, setDeliveryLocation] = useState(null);
+  const [deliveryLocation, setDeliveryLocation] = useState(() => {
+    try {
+      const saved = localStorage.getItem("omnistore_saved_coords");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptedConsent, setAcceptedConsent] = useState(false);
 
@@ -148,8 +156,10 @@ export default function CheckoutModal() {
     }
 
     try {
+      if (formData.name) localStorage.setItem("omnistore_saved_name", formData.name);
       if (formData.phone) localStorage.setItem("omnistore_saved_phone", formData.phone);
       if (formData.address) localStorage.setItem("omnistore_saved_address", formData.address);
+      if (deliveryLocation) localStorage.setItem("omnistore_saved_coords", JSON.stringify(deliveryLocation));
     } catch {
       // ignore
     }
@@ -397,7 +407,16 @@ export default function CheckoutModal() {
 
                           {/* Interactive Map Picker with GPS */}
                           <DeliveryMapPicker
-                            onLocationSelect={(loc) => setDeliveryLocation(loc)}
+                            initialCoords={deliveryLocation}
+                            onLocationSelect={(loc) => {
+                              setDeliveryLocation(loc);
+                              try {
+                                localStorage.setItem("omnistore_saved_coords", JSON.stringify(loc));
+                              } catch {}
+                              if (loc.suggestedAddress && !formData.address) {
+                                setFormData((prev) => ({ ...prev, address: loc.suggestedAddress }));
+                              }
+                            }}
                           />
                         </div>
                       )}
