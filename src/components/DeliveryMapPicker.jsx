@@ -84,11 +84,18 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
       zoomControl: false,
     });
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    // Clean, modern street map layer without API keys or watermarks (Esri World Street Map)
+    const baseLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+      attribution: 'Map &copy; Esri &mdash; OpenStreetMap',
       maxZoom: 19,
-      subdomains: "abcd",
     }).addTo(map);
+
+    // Fallback to OpenStreetMap if tile fails
+    baseLayer.on("tileerror", (error) => {
+      if (error && error.tile && error.coords) {
+        error.tile.src = `https://tile.openstreetmap.org/${error.coords.z}/${error.coords.x}/${error.coords.y}.png`;
+      }
+    });
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
