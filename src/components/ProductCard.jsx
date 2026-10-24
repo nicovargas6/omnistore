@@ -9,7 +9,6 @@ export default function ProductCard({ product }) {
   const [hasImageError, setHasImageError] = useState(false);
 
   const isOutOfStock = product.stock <= 0;
-  const isLowStock = product.stock > 0 && product.stock <= 5;
   const inCartItem = cart.find((item) => item.id === product.id);
 
   const handleQuickAdd = (e) => {
@@ -69,16 +68,12 @@ export default function ProductCard({ product }) {
             </span>
           ))}
 
-          {/* Low stock or Out of stock badge */}
-          {isOutOfStock ? (
+          {/* Out of stock badge */}
+          {isOutOfStock && (
             <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-600 text-white uppercase tracking-wider shadow-xs">
               Agotado
             </span>
-          ) : isLowStock ? (
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-neutral-950 uppercase tracking-wider shadow-xs">
-              ¡Últimas {product.stock}!
-            </span>
-          ) : null}
+          )}
         </div>
 
         {/* Hover quick view overlay pill */}
@@ -117,9 +112,11 @@ export default function ProductCard({ product }) {
                 </span>
               )}
             </div>
-            <span className="text-[11px] font-medium text-neutral-500">
-              {isOutOfStock ? "Sin stock disponible" : `${product.stock} disponibles`}
-            </span>
+            {isOutOfStock && (
+              <span className="text-[11px] font-semibold text-rose-600">
+                Agotado
+              </span>
+            )}
           </div>
 
           {/* Quick Add Button */}

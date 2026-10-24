@@ -8,3 +8,12 @@ export function parseOptionExtraPrice(optionString) {
   }
   return 0;
 }
+
+export function formatOptionDisplay(optionString, currency = "Bs ") {
+  if (!optionString || typeof optionString !== "string") return optionString;
+  const curr = (currency || "Bs ").trim();
+  return optionString.replace(
+    /\(\+\s*(?:Bs\.?|[$€£S/])?\s*(\d+(?:\.\d+)?)\s*\)/i,
+    `(+ ${curr} $1)`
+  );
+}

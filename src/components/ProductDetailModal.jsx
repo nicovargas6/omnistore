@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useStore } from "../context/StoreContext";
-import { parseOptionExtraPrice } from "../utils/pricing";
-import { X, ShoppingBag, Plus, Minus, MessageCircle, Check, AlertTriangle, ShieldCheck } from "lucide-react";
+import { parseOptionExtraPrice, formatOptionDisplay } from "../utils/pricing";
+import { X, ShoppingBag, Plus, Minus, MessageCircle, AlertTriangle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ProductDetailModal() {
@@ -148,18 +148,14 @@ export default function ProductDetailModal() {
                 )}
               </div>
 
-              {/* Stock status */}
-              <div className="text-xs flex items-center gap-1.5">
-                {isOutOfStock ? (
-                  <span className="text-rose-600 font-semibold flex items-center gap-1">
+              {/* Stock status (only shown when out of stock) */}
+              {isOutOfStock && (
+                <div className="text-xs flex items-center gap-1.5">
+                  <span className="text-rose-600 font-semibold flex items-center gap-1 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">
                     <AlertTriangle className="w-4 h-4" /> Agotado actualmente
                   </span>
-                ) : (
-                  <span className="text-emerald-700 font-medium flex items-center gap-1">
-                    <Check className="w-4 h-4 text-emerald-600" /> Disponibilidad en inventario: {product.stock} unidades
-                  </span>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Description */}
               <p className="text-sm text-neutral-600 leading-relaxed pt-2 border-t border-neutral-100">
@@ -183,7 +179,7 @@ export default function ProductDetailModal() {
                             : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:bg-neutral-100"
                         }`}
                       >
-                        {option}
+                        {formatOptionDisplay(option, storeConfig.currency)}
                       </button>
                     ))}
                   </div>

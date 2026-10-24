@@ -1,6 +1,6 @@
 import React from "react";
 import { useStore } from "../context/StoreContext";
-import { ArrowDown, MessageCircle, ShieldCheck, Zap, Truck, Sparkles, Edit3 } from "lucide-react";
+import { ArrowDown, MessageCircle, ShieldCheck, Zap, Truck, Edit3 } from "lucide-react";
 import { motion } from "framer-motion";
 import { InteractiveHoverButton } from "./ui/InteractiveHoverButton";
 
@@ -30,17 +30,6 @@ export default function Hero({ onExploreClick }) {
 
       {/* Hero Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 py-16 sm:py-24 text-white flex flex-col items-center sm:items-start text-center sm:text-left">
-        {/* Hero badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/25 text-white text-xs font-semibold mb-4 tracking-wide shadow-sm"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-          <span>{storeConfig.heroBadge || "Catálogo & Venta Directa"}</span>
-        </motion.div>
-
         {/* Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 15 }}

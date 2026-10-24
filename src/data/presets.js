@@ -579,10 +579,10 @@ export const INITIAL_COUPONS = [
   {
     code: "PROMO5",
     discountType: "fixed",
-    value: 5.00, // $5 off
+    value: 5.00,
     minPurchase: 20.00,
-    maxUsesPerDevice: 2, // Límite de uso por dispositivo
-    description: "$5.00 de descuento en compras mayores a $20",
+    maxUsesPerDevice: 2,
+    description: "Bs 5.00 de descuento en compras mayores a Bs 20",
     active: true
   },
   {
@@ -590,8 +590,8 @@ export const INITIAL_COUPONS = [
     discountType: "free_shipping",
     value: 0,
     minPurchase: 15.00,
-    maxUsesPerDevice: 1, // Límite de uso por dispositivo
-    description: "Envío bonificado al 100% en compras mayores a $15",
+    maxUsesPerDevice: 1,
+    description: "Envío bonificado al 100% en compras mayores a Bs 15",
     active: true
   }
 ];

@@ -6,7 +6,23 @@ import { toast } from "sonner";
 
 const StoreContext = createContext();
 
-const STORAGE_KEY = "omnistore_prototype_v3";
+const STORAGE_KEY = "omnistore_app_v4";
+
+const sanitizeProducts = (prods, currency = "Bs ") => {
+  if (!Array.isArray(prods)) return prods;
+  const curr = (currency || "Bs ").trim();
+  return prods.map((p) => {
+    if (!p.options || !Array.isArray(p.options)) return p;
+    return {
+      ...p,
+      options: p.options.map((opt) =>
+        typeof opt === "string"
+          ? opt.replace(/\(\+\s*(?:[$€£S/]|Bs\.?)?\s*(\d+(?:\.\d+)?)\s*\)/i, `(+ ${curr} $1)`)
+          : opt
+      ),
+    };
+  });
+};
 
 export function StoreProvider({ children }) {
   // Load saved state or default to restaurant preset
@@ -152,18 +168,20 @@ export function StoreProvider({ children }) {
   // Initialize from LocalStorage
   useEffect(() => {
     try {
-      const savedData = localStorage.getItem(STORAGE_KEY);
+      const savedData = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("omnistore_prototype_v3");
       if (savedData) {
         const parsed = JSON.parse(savedData);
         if (parsed.activePresetKey) setActivePresetKey(parsed.activePresetKey);
+        let activeCurr = "Bs ";
         if (parsed.storeConfig) {
           const cfg = parsed.storeConfig;
           if (cfg.currency === "$" || !cfg.currency) cfg.currency = "Bs ";
           if (cfg.deliveryCost === 2.5) cfg.deliveryCost = 15.0;
+          activeCurr = cfg.currency;
           setStoreConfig(cfg);
         }
         if (parsed.categories) setCategories(parsed.categories);
-        if (parsed.products) setProducts(parsed.products);
+        if (parsed.products) setProducts(sanitizeProducts(parsed.products, activeCurr));
         if (parsed.orders) setOrders(parsed.orders);
         if (parsed.cart) setCart(parsed.cart);
         if (parsed.features) setFeatures(parsed.features);
