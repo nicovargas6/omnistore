@@ -26,34 +26,30 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
 
-  // Default coordinate (e.g., Buenos Aires / Central, or user coordinates)
+  // Default coordinate centered in Cochabamba, Bolivia
   const [coords, setCoords] = useState(
-    initialCoords || { lat: -34.5912, lng: -58.4123 }
+    initialCoords || { lat: -17.3935, lng: -66.1570 }
   );
   const [isLocating, setIsLocating] = useState(false);
   const [hasPinned, setHasPinned] = useState(Boolean(initialCoords));
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
-    if (mapInstanceRef.current) return; // Prevent multiple initializations
+    if (mapInstanceRef.current) return;
 
-    // Initialize Leaflet Map
     const map = L.map(mapContainerRef.current, {
       center: [coords.lat, coords.lng],
       zoom: 15,
       zoomControl: false,
     });
 
-    // Add Free OpenStreetMap Tile Layer
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom: 19,
     }).addTo(map);
 
-    // Zoom controls at bottom right
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
-    // Add draggable marker
     const marker = L.marker([coords.lat, coords.lng], {
       icon: createPinIcon(),
       draggable: true,

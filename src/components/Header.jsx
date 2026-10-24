@@ -48,7 +48,7 @@ export default function Header() {
             <div className="flex items-center">
               {isStoreOpen ? (
                 <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-300 bg-emerald-950/70 border border-emerald-500/40 px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                   <span>Abierto ahora ({storeConfig.businessHours?.openTime || "11:00"} - {storeConfig.businessHours?.closeTime || "23:00"})</span>
                 </span>
               ) : (
@@ -65,11 +65,11 @@ export default function Header() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Privacy & My Data Center */}
             <button
               onClick={openPrivacyCenter}
-              className="flex items-center gap-1.5 text-neutral-300 hover:text-white px-2 py-0.5 rounded-md text-[11px] font-medium transition cursor-pointer hover:bg-neutral-800"
+              className="flex items-center gap-1.5 text-neutral-300 hover:text-white px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer hover:bg-neutral-800"
               title="Centro de Privacidad y gestión de datos personales"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
@@ -80,7 +80,7 @@ export default function Header() {
             {features.orderTracking && viewMode === "storefront" && (
               <button
                 onClick={() => openTracking(null)}
-                className="flex items-center gap-1.5 text-neutral-300 hover:text-white px-2 py-0.5 rounded-md text-[11px] font-medium transition cursor-pointer hover:bg-neutral-800"
+                className="flex items-center gap-1.5 text-neutral-300 hover:text-white px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer hover:bg-neutral-800"
                 title="Rastrear el estado de tu pedido con tu código o teléfono"
               >
                 <Clock className="w-3.5 h-3.5 text-amber-400" />
@@ -93,10 +93,10 @@ export default function Header() {
               <button
                 onClick={() => setIsPresetDropdownOpen(!isPresetDropdownOpen)}
                 className="flex items-center gap-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer border border-neutral-700"
-                title="Cambiar giro de negocio para este prototipo"
+                title="Seleccionar giro de negocio activo"
               >
                 <Sparkles className="w-3 h-3 text-amber-400" />
-                <span>Modelo: <strong className="text-white">{storeConfig.name.split("|")[0].split("&")[0].trim()}</strong></span>
+                <span>Giro: <strong className="text-white">{storeConfig.name.split("|")[0].split("&")[0].trim()}</strong></span>
                 <ChevronDown className="w-3 h-3 text-neutral-400" />
               </button>
 
@@ -200,7 +200,7 @@ export default function Header() {
             >
               <LayoutDashboard className="w-4 h-4" />
               <span className="hidden sm:inline">Admin</span>
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-amber-400"></span>
             </button>
           </div>
 

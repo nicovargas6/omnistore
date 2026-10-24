@@ -38,26 +38,34 @@ export default function CheckoutModal() {
     openLegalDoc,
   } = useStore();
 
-  const [formData, setFormData] = useState({
-    name: "Alex Valenzuela",
-    phone: "+591 71234567",
-    orderType: storeConfig.orderTypes ? storeConfig.orderTypes[0] : "Delivery a Domicilio",
-    address: "Av. Ballivián 1240, Edif. Los Pinos, Piso 4",
-    paymentMethod: "QR Simple (Banca Móvil / Interoperable)",
-    notes: "Por favor tocar el timbre al llegar.",
+  const [formData, setFormData] = useState(() => {
+    let savedPhone = "";
+    let savedAddress = "";
+    try {
+      savedPhone = localStorage.getItem("omnistore_saved_phone") || "";
+      savedAddress = localStorage.getItem("omnistore_saved_address") || "";
+    } catch {
+      // ignore
+    }
+    return {
+      name: "",
+      phone: savedPhone,
+      orderType: storeConfig.orderTypes ? storeConfig.orderTypes[0] : "Delivery a Domicilio",
+      address: savedAddress,
+      paymentMethod: "QR Simple (Banca Móvil / Interoperable)",
+      notes: "",
+    };
   });
 
   const [deliveryLocation, setDeliveryLocation] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptedConsent, setAcceptedConsent] = useState(false);
 
-  // QR Screen state
-  const [checkoutStep, setCheckoutStep] = useState("form"); // 'form' | 'qr_payment' | 'qr_success'
+  const [checkoutStep, setCheckoutStep] = useState("form");
   const [qrOrderRef, setQrOrderRef] = useState("");
-  const [qrSecondsLeft, setQrSecondsLeft] = useState(599); // 10 minutes countdown
+  const [qrSecondsLeft, setQrSecondsLeft] = useState(599);
   const [isSimulatingBank, setIsSimulatingBank] = useState(false);
 
-  // Reset step when modal opens
   useEffect(() => {
     if (isCheckoutOpen) {
       setCheckoutStep("form");
@@ -68,7 +76,6 @@ export default function CheckoutModal() {
     }
   }, [isCheckoutOpen]);
 
-  // Countdown timer when on QR payment screen
   useEffect(() => {
     let timer;
     if (checkoutStep === "qr_payment" && qrSecondsLeft > 0) {
@@ -108,13 +115,18 @@ export default function CheckoutModal() {
       return;
     }
 
-    // If QR Simple method is selected, transition to QR payment view
+    try {
+      if (formData.phone) localStorage.setItem("omnistore_saved_phone", formData.phone);
+      if (formData.address) localStorage.setItem("omnistore_saved_address", formData.address);
+    } catch {
+      // ignore
+    }
+
     if (formData.paymentMethod.includes("QR")) {
       setCheckoutStep("qr_payment");
       return;
     }
 
-    // Standard cash or credit card submission
     setIsSubmitting(true);
     setTimeout(() => {
       const order = placeOrder({

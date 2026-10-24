@@ -49,7 +49,7 @@ export const BUSINESS_PRESETS = {
         tags: ["Vegetariano", "Italiano"],
         isFeatured: true,
         optionsLabel: "Opciones extra",
-        options: ["Clásico", "Con reducción de trufa negra (+ $3)", "Con burrata cremosa (+ $4)"]
+        options: ["Clásico", "Con reducción de trufa negra (+ Bs 20)", "Con burrata cremosa (+ Bs 25)"]
       },
       {
         id: "rest-3",
@@ -64,7 +64,7 @@ export const BUSINESS_PRESETS = {
         tags: ["Para Compartir"],
         isFeatured: true,
         optionsLabel: "Porción",
-        options: ["Para 2 personas", "Para 4 personas (+ $12)"]
+        options: ["Para 2 personas", "Para 4 personas (+ Bs 75)"]
       },
       {
         id: "rest-4",
@@ -252,7 +252,7 @@ export const BUSINESS_PRESETS = {
         tags: ["Garantía 3 Años", "Uso Profesional"],
         isFeatured: true,
         optionsLabel: "Kit de compra",
-        options: ["Kit Estándar (2 Baterías 2Ah)", "Kit Extendido (+ 1 Batería 4Ah) (+ $35)"]
+        options: ["Kit Estándar (2 Baterías 2Ah)", "Kit Extendido (+ 1 Batería 4Ah) (+ Bs 220)"]
       },
       {
         id: "hard-2",
@@ -267,7 +267,7 @@ export const BUSINESS_PRESETS = {
         tags: ["Potencia Industrial"],
         isFeatured: true,
         optionsLabel: "Disco adicional",
-        options: ["Solo disco 24T incluido", "Con disco adicional 40T finos (+ $12)"]
+        options: ["Solo disco 24T incluido", "Con disco adicional 40T finos (+ Bs 80)"]
       },
       {
         id: "hard-3",
@@ -436,7 +436,7 @@ export const BUSINESS_PRESETS = {
         tags: ["Accesorios de Té"],
         isFeatured: false,
         optionsLabel: "Capacidad",
-        options: ["600ml (2 Tazas)", "800ml (4 Tazas) (+ $4)"]
+        options: ["600ml (2 Tazas)", "800ml (4 Tazas) (+ Bs 25)"]
       }
     ]
   }
@@ -528,7 +528,7 @@ export const INITIAL_ORDERS = [
     paymentMethod: "Transferencia / QR",
     status: "preparando",
     items: [
-      { id: "rest-2", name: "Risotto Funghi Porcini & Parmigiano", price: 18.00, quantity: 1, option: "Con reducción de trufa negra (+ $3)" },
+      { id: "rest-2", name: "Risotto Funghi Porcini & Parmigiano", price: 18.00, quantity: 1, option: "Con reducción de trufa negra (+ Bs 20)" },
       { id: "rest-5", name: "Tarta Húmeda de Chocolate & Pistacho", price: 9.00, quantity: 1, option: "Con Helado de Pistacho" }
     ],
     subtotal: 30.00,

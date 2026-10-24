@@ -93,13 +93,13 @@ export default function ProductCard({ product }) {
       {/* Product Details */}
       <div className="p-4 flex-1 flex flex-col justify-between gap-3">
         <div>
-          <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">
+          <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
             {product.category}
           </span>
           <h3 className="font-semibold text-neutral-900 text-sm sm:text-base leading-snug group-hover:text-neutral-700 transition line-clamp-2 mt-0.5">
             {product.name}
           </h3>
-          <p className="text-xs text-neutral-500 line-clamp-2 mt-1.5 leading-relaxed">
+          <p className="text-xs text-neutral-600 line-clamp-2 mt-1.5 leading-relaxed">
             {product.description}
           </p>
         </div>
@@ -112,12 +112,12 @@ export default function ProductCard({ product }) {
                 {storeConfig.currency} {product.price.toFixed(2)}
               </span>
               {product.comparePrice && product.comparePrice > product.price && (
-                <span className="text-xs text-neutral-400 line-through tabular-nums font-mono">
+                <span className="text-xs text-neutral-500 line-through tabular-nums font-mono">
                   {storeConfig.currency} {product.comparePrice.toFixed(2)}
                 </span>
               )}
             </div>
-            <span className="text-[11px] text-neutral-400">
+            <span className="text-[11px] font-medium text-neutral-500">
               {isOutOfStock ? "Sin stock disponible" : `${product.stock} disponibles`}
             </span>
           </div>

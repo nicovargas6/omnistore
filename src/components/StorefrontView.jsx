@@ -118,7 +118,7 @@ export default function StorefrontView() {
           {/* Section Title */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-4 gap-2">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+              <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">
                 Catálogo Disponible
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
@@ -318,8 +318,7 @@ export default function StorefrontView() {
                   <Bot className="w-4 h-4 text-white" />
                 </div>
                 <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-200 ring-2 ring-emerald-700"></span>
                 </span>
               </div>
               <div className="text-left">

@@ -66,38 +66,40 @@ export default function Hero({ onExploreClick }) {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
-          className="flex flex-wrap items-center justify-center sm:justify-start gap-3 w-full sm:w-auto"
+          className="flex flex-col items-center sm:items-start gap-3 w-full sm:w-auto"
         >
-          <InteractiveHoverButton
-            onClick={onExploreClick}
-            icon={ArrowDown}
-            className="w-full sm:w-auto bg-white text-neutral-900 border-white/80 shadow-lg"
-            dotClassName="bg-neutral-900"
-            activeTextClassName="text-white"
-          >
-            Explorar Catálogo
-          </InteractiveHoverButton>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+            <InteractiveHoverButton
+              onClick={onExploreClick}
+              icon={ArrowDown}
+              className="w-full sm:w-auto bg-white text-neutral-900 border-white/80 shadow-lg"
+              dotClassName="bg-neutral-900"
+              activeTextClassName="text-white"
+            >
+              Explorar Catálogo
+            </InteractiveHoverButton>
 
-          <InteractiveHoverButton
-            onClick={handleWhatsAppClick}
-            icon={MessageCircle}
-            className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-400/40"
-            dotClassName="bg-emerald-800"
-            activeTextClassName="text-white"
-          >
-            Consultar por WhatsApp
-          </InteractiveHoverButton>
+            <InteractiveHoverButton
+              onClick={handleWhatsAppClick}
+              icon={MessageCircle}
+              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-400/40"
+              dotClassName="bg-emerald-800"
+              activeTextClassName="text-white"
+            >
+              Consultar por WhatsApp
+            </InteractiveHoverButton>
+          </div>
 
           <button
             onClick={() => {
               setViewMode("admin");
               setActiveAdminTab("customizer");
             }}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-black/40 hover:bg-black/60 text-neutral-300 hover:text-white px-4 py-3.5 rounded-xl font-medium text-xs backdrop-blur-md border border-white/15 transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-neutral-300 hover:text-white bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-md transition cursor-pointer"
             title="Ir al personalizador visual en el Panel Admin"
           >
-            <Edit3 className="w-3.5 h-3.5" />
-            <span>Editar este Negocio</span>
+            <Edit3 className="w-3.5 h-3.5 text-amber-300" />
+            <span>Personalizar portada y marca</span>
           </button>
         </motion.div>
       </div>
@@ -105,21 +107,29 @@ export default function Hero({ onExploreClick }) {
       {/* Feature Strip footer */}
       <div className="relative z-10 border-t border-white/10 bg-black/40 backdrop-blur-md px-6 py-3.5">
         <div className="max-w-5xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-4 text-white text-xs">
-          <div className="flex items-center gap-2">
-            <Truck className="w-4 h-4 text-amber-300 flex-shrink-0" />
-            <span className="text-neutral-200">Envío / Retiro rápido</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0 text-amber-400 border border-white/10">
+              <Truck className="w-3.5 h-3.5" />
+            </div>
+            <span className="text-neutral-200 font-medium leading-tight">Envío local o retiro</span>
           </div>
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-            <span className="text-neutral-200">Compra transparente</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0 text-amber-400 border border-white/10">
+              <ShieldCheck className="w-3.5 h-3.5" />
+            </div>
+            <span className="text-neutral-200 font-medium leading-tight">Pago con QR Simple</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-cyan-300 flex-shrink-0" />
-            <span className="text-neutral-200">Inventario en tiempo real</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0 text-amber-400 border border-white/10">
+              <Zap className="w-3.5 h-3.5" />
+            </div>
+            <span className="text-neutral-200 font-medium leading-tight">Stock en tiempo real</span>
           </div>
-          <div className="flex items-center gap-2">
-            <MessageCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
-            <span className="text-neutral-200">Soporte directo</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0 text-amber-400 border border-white/10">
+              <MessageCircle className="w-3.5 h-3.5" />
+            </div>
+            <span className="text-neutral-200 font-medium leading-tight">Atención directa WhatsApp</span>
           </div>
         </div>
       </div>
