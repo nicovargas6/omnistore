@@ -117,8 +117,13 @@ export default function OrderManager() {
               <span>{soundAlertsEnabled ? "Alerta Sonora: ON" : "Silenciado"}</span>
             </button>
             <button
-              onClick={playOrderBell}
-              className="text-[11px] font-medium text-neutral-400 hover:text-neutral-700 underline cursor-pointer"
+              onClick={() => {
+                playOrderBell();
+                toast.info("🔔 Timbre de comanda sonando", {
+                  description: "Si no escuchas audio en tu celular, verifica que el interruptor lateral no esté en silencio."
+                });
+              }}
+              className="text-[11px] font-semibold text-neutral-500 hover:text-neutral-900 underline cursor-pointer active:scale-95"
             >
               Probar timbre
             </button>

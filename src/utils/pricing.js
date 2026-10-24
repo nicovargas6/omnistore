@@ -9,11 +9,38 @@ export function parseOptionExtraPrice(optionString) {
   return 0;
 }
 
-export function formatOptionDisplay(optionString, currency = "Bs ") {
-  if (!optionString || typeof optionString !== "string") return optionString;
+export function getOptionDetails(optionString, currency = "Bs ") {
+  if (!optionString || typeof optionString !== "string") {
+    return { 
+      name: optionString || "", 
+      hasExtra: false, 
+      extraPrice: 0, 
+      extraText: "", 
+      fullDisplay: optionString || "" 
+    };
+  }
   const curr = (currency || "Bs ").trim();
-  return optionString.replace(
-    /\(\+\s*(?:Bs\.?|[$€£S/])?\s*(\d+(?:\.\d+)?)\s*\)/i,
-    `(+ ${curr} $1)`
-  );
+  const match = optionString.match(/\(\+\s*(?:Bs\.?|[$€£S/])?\s*(\d+(?:\.\d+)?)\s*\)/i);
+  if (match && match[1]) {
+    const extraPrice = parseFloat(match[1]) || 0;
+    const name = optionString.replace(/\s*\(\+.*?\)\s*/i, "").trim();
+    return {
+      name,
+      hasExtra: true,
+      extraPrice,
+      extraText: `(+ ${curr} ${extraPrice.toFixed(2)})`,
+      fullDisplay: `${name} (+ ${curr} ${extraPrice.toFixed(2)})`,
+    };
+  }
+  return {
+    name: optionString,
+    hasExtra: false,
+    extraPrice: 0,
+    extraText: "",
+    fullDisplay: optionString,
+  };
+}
+
+export function formatOptionDisplay(optionString, currency = "Bs ") {
+  return getOptionDetails(optionString, currency).fullDisplay;
 }

@@ -26,7 +26,7 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
 
-  // Default coordinate centered in Cochabamba, Bolivia (-17.3935, -66.1570)
+  // Default coordinate centered in Bolivia (-17.3935, -66.1570)
   const [coords, setCoords] = useState(
     initialCoords || { lat: -17.3935, lng: -66.1570 }
   );
@@ -57,6 +57,13 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
 
     markerRef.current = marker;
     mapInstanceRef.current = map;
+
+    // Fix gray tiles inside modals on mobile
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 250);
 
     // Handle marker drag
     marker.on("dragend", () => {
@@ -100,7 +107,7 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
     };
   }, []);
 
-  // Multi-tier resilient Geolocation (Hardware GPS -> Network Wi-Fi/Cell -> IP Fallback)
+  // Multi-tier resilient Geolocation (GPS Satellite -> Wi-Fi/Cell Network -> IP Geo Fallback)
   const handleUseCurrentLocation = () => {
     if (isLocating) return;
 
@@ -113,6 +120,9 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
       if (mapInstanceRef.current && markerRef.current) {
         mapInstanceRef.current.setView([lat, lng], 16);
         markerRef.current.setLatLng([lat, lng]);
+        setTimeout(() => {
+          if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
+        }, 100);
       }
 
       if (onLocationSelect) {
@@ -121,7 +131,7 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
           googleMapsUrl: `https://www.google.com/maps?q=${lat.toFixed(6)},${lng.toFixed(6)}`,
         });
       }
-      toast.success(label || "¡Ubicación GPS fijada en el mapa!");
+      toast.success(label || "¡Ubicación fijada en el mapa!");
     };
 
     if (!navigator.geolocation) {
@@ -131,32 +141,25 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
 
     setIsLocating(true);
 
-    // Tier 1: Hardware High-Accuracy GPS (7s timeout)
+    // Tier 1: Satellite GPS (6s timeout)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        applyLocation(pos.coords.latitude, pos.coords.longitude, "¡Ubicación GPS de alta precisión detectada!");
+        applyLocation(pos.coords.latitude, pos.coords.longitude, "¡Ubicación GPS detectada y fijada!");
       },
       (highErr) => {
-        // If user actively blocked location permissions in browser settings
-        if (highErr.code === 1) { // PERMISSION_DENIED
-          setIsLocating(false);
-          toast.warning("Permiso de ubicación desactivado en tu navegador. Puedes tocar directamente en el mapa para marcar tu casa.");
-          return;
-        }
-
-        // Tier 2: Low-Accuracy (Wi-Fi / Cell tower / Network triangulation) - works indoors
+        // If error or permission blocked in browser, silently try Tier 2 & Tier 3 without displaying red warnings
         navigator.geolocation.getCurrentPosition(
           (pos) => {
-            applyLocation(pos.coords.latitude, pos.coords.longitude, "¡Ubicación por red detectada y fijada!");
+            applyLocation(pos.coords.latitude, pos.coords.longitude, "¡Ubicación detectada por red!");
           },
-          (lowErr) => {
+          () => {
             // Tier 3: IP Location fallback
             fallbackToIpLookup(applyLocation);
           },
-          { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
+          { enableHighAccuracy: false, timeout: 6000, maximumAge: 300000 }
         );
       },
-      { enableHighAccuracy: true, timeout: 7000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
     );
   };
 
@@ -168,16 +171,16 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
           applyLocation(
             data.latitude, 
             data.longitude, 
-            `Ubicación aproximada detectada (${data.city || "tu ciudad"}). Puedes ajustar el pin si lo necesitas.`
+            `Ubicación fijada (${data.city || "tu zona"}). Toca en el mapa para ajustar el punto exacto.`
           );
         } else {
           setIsLocating(false);
-          toast.warning("No pudimos obtener tu señal GPS. Toca en cualquier punto del mapa para fijar tu dirección.");
+          toast.info("Toca en el mapa para marcar el punto exacto de tu domicilio.");
         }
       })
       .catch(() => {
         setIsLocating(false);
-        toast.warning("No se pudo conectar con el GPS. Toca sobre el mapa para fijar tu ubicación.");
+        toast.info("Toca en el mapa para marcar tu domicilio.");
       });
   };
 
@@ -199,7 +202,7 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
           {isLocating ? (
             <>
               <Loader2 className="w-3 h-3 animate-spin text-emerald-700" />
-              <span>Detectando GPS...</span>
+              <span>Detectando...</span>
             </>
           ) : (
             <>

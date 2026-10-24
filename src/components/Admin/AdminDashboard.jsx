@@ -307,8 +307,13 @@ export default function AdminDashboard() {
               <span>Exportar Reporte (CSV)</span>
             </button>
             <button
-              onClick={playOrderBell}
-              className="flex items-center gap-1 bg-neutral-50 hover:bg-neutral-100 text-neutral-600 border border-neutral-200 px-3 py-2 rounded-xl text-xs font-medium transition cursor-pointer"
+              onClick={() => {
+                playOrderBell();
+                toast.info("🔔 Timbre de comanda sonando", {
+                  description: "Si no escuchas audio en tu celular, verifica que el interruptor lateral no esté en silencio."
+                });
+              }}
+              className="flex items-center gap-1 bg-neutral-50 hover:bg-neutral-100 text-neutral-600 border border-neutral-200 px-3 py-2 rounded-xl text-xs font-medium transition cursor-pointer active:scale-95"
               title="Probar timbre sonoro"
             >
               <span>🔔 Probar Timbre</span>

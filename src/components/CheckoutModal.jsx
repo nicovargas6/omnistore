@@ -147,11 +147,6 @@ export default function CheckoutModal() {
       return;
     }
 
-    if (requestInvoice && (!billingNit.trim() || !billingBusinessName.trim())) {
-      toast.error("Por favor completa el NIT/CI y la Razón Social para la factura.");
-      return;
-    }
-
     try {
       if (formData.phone) localStorage.setItem("omnistore_saved_phone", formData.phone);
       if (formData.address) localStorage.setItem("omnistore_saved_address", formData.address);
@@ -168,6 +163,11 @@ export default function CheckoutModal() {
   // Final Order Submission from Step 2
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (requestInvoice && (!billingNit.trim() || !billingBusinessName.trim())) {
+      toast.error("Por favor completa el NIT/CI y la Razón Social para la factura.");
+      return;
+    }
 
     if (!acceptedConsent) {
       toast.error("Debes aceptar la Política de Privacidad y el tratamiento de datos para confirmar tu pedido.");
@@ -440,61 +440,6 @@ export default function CheckoutModal() {
                       />
                     </div>
 
-                    {/* Optional Invoicing (NIT / CI) */}
-                    {storeConfig.billingEnabled !== false && (
-                      <div className="bg-neutral-50 rounded-2xl p-3.5 border border-neutral-200/80 space-y-3">
-                        <label className="flex items-center justify-between cursor-pointer select-none">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={requestInvoice}
-                              onChange={(e) => setRequestInvoice(e.target.checked)}
-                              className="w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 cursor-pointer"
-                            />
-                            <span className="text-xs font-bold text-neutral-800">
-                              ¿Deseas Factura con Crédito Fiscal?
-                            </span>
-                          </div>
-                          <span className="text-[10px] text-neutral-500 font-medium">Opcional</span>
-                        </label>
-
-                        {requestInvoice && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-neutral-200/60"
-                          >
-                            <div>
-                              <label className="block text-[11px] font-bold text-neutral-600 mb-1">
-                                NIT o C.I. del Titular *
-                              </label>
-                              <input
-                                type="text"
-                                required={requestInvoice}
-                                value={billingNit}
-                                onChange={(e) => setBillingNit(e.target.value)}
-                                placeholder="Ej. 1028475021 o 6789123"
-                                className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-base sm:text-xs font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-[11px] font-bold text-neutral-600 mb-1">
-                                Razón Social o Nombre Factura *
-                              </label>
-                              <input
-                                type="text"
-                                required={requestInvoice}
-                                value={billingBusinessName}
-                                onChange={(e) => setBillingBusinessName(e.target.value)}
-                                placeholder="Ej. Juan Pérez o Mi Empresa S.R.L."
-                                className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                              />
-                            </div>
-                          </motion.div>
-                        )}
-                      </div>
-                    )}
-
                     {/* BOTÓN SIGUIENTE AL COMPLETAR DATOS */}
                     <div className="pt-2">
                       <button
@@ -594,6 +539,61 @@ export default function CheckoutModal() {
                         })}
                       </div>
                     </div>
+
+                    {/* Optional Invoicing (NIT / CI) inside Section 3 */}
+                    {storeConfig.billingEnabled !== false && (
+                      <div className="bg-neutral-50 rounded-2xl p-3.5 border border-neutral-200/80 space-y-3">
+                        <label className="flex items-center justify-between cursor-pointer select-none">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={requestInvoice}
+                              onChange={(e) => setRequestInvoice(e.target.checked)}
+                              className="w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 cursor-pointer"
+                            />
+                            <span className="text-xs font-bold text-neutral-800">
+                              ¿Deseas Factura con Crédito Fiscal?
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-neutral-500 font-medium">Opcional</span>
+                        </label>
+
+                        {requestInvoice && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-neutral-200/60"
+                          >
+                            <div>
+                              <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+                                NIT o C.I. del Titular *
+                              </label>
+                              <input
+                                type="text"
+                                required={requestInvoice}
+                                value={billingNit}
+                                onChange={(e) => setBillingNit(e.target.value)}
+                                placeholder="Ej. 1028475021 o 6789123"
+                                className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-base sm:text-xs font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+                                Razón Social o Nombre Factura *
+                              </label>
+                              <input
+                                type="text"
+                                required={requestInvoice}
+                                value={billingBusinessName}
+                                onChange={(e) => setBillingBusinessName(e.target.value)}
+                                placeholder="Ej. Juan Pérez o Mi Empresa S.R.L."
+                                className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                              />
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Resumen del Pedido */}
                     <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200/80 space-y-2 text-xs">

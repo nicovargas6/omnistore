@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useStore } from "../context/StoreContext";
-import { parseOptionExtraPrice, formatOptionDisplay } from "../utils/pricing";
+import { parseOptionExtraPrice, getOptionDetails } from "../utils/pricing";
 import { X, ShoppingBag, Plus, Minus, MessageCircle, AlertTriangle, Maximize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -182,25 +182,31 @@ export default function ProductDetailModal() {
                     {product.optionsLabel || "Opciones Disponibles"}:
                   </label>
                   <div className="grid grid-cols-2 gap-2">
-                    {product.options.map((opt) => (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={() => setSelectedOption(opt)}
-                        className={`p-2.5 text-xs rounded-xl border text-left font-semibold transition cursor-pointer flex flex-col justify-between ${
-                          selectedOption === opt
-                            ? "border-neutral-900 bg-neutral-900 text-white shadow-xs"
-                            : "border-neutral-200 hover:bg-neutral-50 text-neutral-800"
-                        }`}
-                      >
-                        <span>{formatOptionDisplay(opt).name}</span>
-                        {formatOptionDisplay(opt).hasExtra && (
-                          <span className={`text-[10px] mt-0.5 ${selectedOption === opt ? "text-emerald-300" : "text-emerald-700"}`}>
-                            {formatOptionDisplay(opt).extraText}
+                    {product.options.map((opt) => {
+                      const optDetails = getOptionDetails(opt, storeConfig.currency);
+                      const isSelected = selectedOption === opt;
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setSelectedOption(opt)}
+                          className={`p-3 text-xs rounded-xl border text-left font-semibold transition cursor-pointer flex flex-col justify-between ${
+                            isSelected
+                              ? "border-neutral-900 bg-neutral-900 text-white shadow-md ring-1 ring-neutral-900"
+                              : "border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800"
+                          }`}
+                        >
+                          <span className={isSelected ? "text-white font-bold" : "text-neutral-900 font-semibold"}>
+                            {optDetails.name}
                           </span>
-                        )}
-                      </button>
-                    ))}
+                          {optDetails.hasExtra && (
+                            <span className={`text-[10px] mt-0.5 ${isSelected ? "text-emerald-300" : "text-emerald-700 font-bold"}`}>
+                              {optDetails.extraText}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
