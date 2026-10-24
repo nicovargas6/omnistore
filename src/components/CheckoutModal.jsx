@@ -167,7 +167,7 @@ export default function CheckoutModal() {
             nit: billingNit.trim(),
             businessName: billingBusinessName.trim()
           } : null,
-        });
+        }, { keepCheckoutOpen: true });
 
         setIsSubmitting(false);
         setCreatedQrOrder(order);

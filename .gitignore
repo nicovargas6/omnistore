@@ -29,3 +29,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright & test artifacts
+.playwright-cli/
+test-results/
+playwright-report/
+audit-screens/
+*.png
+run-*.ps1

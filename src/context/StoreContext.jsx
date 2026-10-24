@@ -606,7 +606,7 @@ export function StoreProvider({ children }) {
   }, [appliedCoupon, cartSubtotal, features.coupons, storeConfig.deliveryCost]);
 
   // Order Placement
-  const placeOrder = (orderData) => {
+  const placeOrder = (orderData, options = {}) => {
     const orderNumber = Math.floor(1000 + Math.random() * 9000);
     const isDelivery =
       orderData.orderType.toLowerCase().includes("delivery") ||
@@ -665,9 +665,12 @@ export function StoreProvider({ children }) {
       recordDeviceCouponUsage(appliedCoupon.code);
     }
     setOrders((prev) => [newOrder, ...prev]);
-    setCompletedOrder(newOrder);
     clearCart();
-    setIsCheckoutOpen(false);
+
+    if (!options?.keepCheckoutOpen) {
+      setCompletedOrder(newOrder);
+      setIsCheckoutOpen(false);
+    }
 
     // Audio chime for admin/kitchen
     if (soundAlertsEnabled) {
