@@ -224,6 +224,8 @@ export default function Header() {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsCartOpen(true)}
+              aria-label="Ver mi pedido y carrito de compra"
+              title="Mi Pedido"
               className="relative flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition cursor-pointer"
             >
               <ShoppingBag className="w-4 h-4" />

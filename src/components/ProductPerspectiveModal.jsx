@@ -4,13 +4,10 @@ import {
   X, 
   ZoomIn, 
   ZoomOut, 
-  RotateCcw, 
   ShoppingBag, 
   MessageCircle, 
-  Eye, 
   Sparkles, 
-  Check, 
-  Layers
+  Check 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -25,13 +22,11 @@ export default function ProductPerspectiveModal() {
 
   const product = selectedProductForPerspective;
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [activeAngleIndex, setActiveAngleIndex] = useState(0);
   const [isAddedRecently, setIsAddedRecently] = useState(false);
 
   useEffect(() => {
     if (product) {
       setZoomLevel(1);
-      setActiveAngleIndex(0);
       setIsAddedRecently(false);
     }
   }, [product]);
@@ -51,18 +46,6 @@ export default function ProductPerspectiveModal() {
 
   const inCartItem = cart.find((item) => item.id === product.id);
   const isOutOfStock = product.stock <= 0;
-
-  // Curated perspectives or zoom presets
-  const perspectives = [
-    { id: "general", label: "Vista General", zoom: 1, icon: Eye },
-    { id: "detail", label: "Detalle & Textura", zoom: 1.5, icon: Layers },
-    { id: "macro", label: "Enfoque Macro", zoom: 2.1, icon: ZoomIn },
-  ];
-
-  const handleSelectPerspective = (p, idx) => {
-    setActiveAngleIndex(idx);
-    setZoomLevel(p.zoom);
-  };
 
   const handleToggleZoom = () => {
     setZoomLevel((prev) => (prev >= 2 ? 1 : prev + 0.5));
@@ -96,14 +79,14 @@ export default function ProductPerspectiveModal() {
           transition={{ duration: 0.2 }}
           className="relative z-20 flex items-center justify-between p-4 sm:p-6 bg-gradient-to-b from-black/80 to-transparent"
         >
-          {/* Product Title & Badge */}
+          {/* Product Title & Category Badge */}
           <div className="min-w-0 pr-3">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/40">
                 {product.category}
               </span>
               <span className="text-[11px] text-neutral-400 hidden sm:inline">
-                Perspectiva de Alta Fidelidad
+                Foto en Alta Resolución
               </span>
             </div>
             <h2 className="text-base sm:text-xl font-bold tracking-tight text-white truncate mt-1">
@@ -117,7 +100,7 @@ export default function ProductPerspectiveModal() {
             <button
               onClick={handleToggleZoom}
               className="flex items-center gap-1.5 bg-neutral-800/90 hover:bg-neutral-700 text-neutral-200 px-3 py-2 rounded-xl text-xs font-semibold border border-neutral-700 transition cursor-pointer active:scale-95"
-              title="Alternar nivel de zoom"
+              title="Alternar nivel de zoom (1.0x, 1.5x, 2.0x)"
             >
               {zoomLevel > 1 ? <ZoomOut className="w-3.5 h-3.5 text-amber-400" /> : <ZoomIn className="w-3.5 h-3.5 text-emerald-400" />}
               <span className="font-mono">{zoomLevel.toFixed(1)}x</span>
@@ -127,14 +110,14 @@ export default function ProductPerspectiveModal() {
             <button
               onClick={closeProductPerspective}
               className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-neutral-800/90 hover:bg-neutral-700 text-neutral-300 hover:text-white flex items-center justify-center border border-neutral-700 transition cursor-pointer active:scale-95 shadow-md"
-              title="Cerrar vista en perspectiva"
+              title="Cerrar vista"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </motion.div>
 
-        {/* Center: Interactive Image Viewer Canvas */}
+        {/* Center: Clean Interactive Image Viewer Canvas (WITHOUT obscuring bar) */}
         <div 
           onClick={handleToggleZoom}
           className="relative flex-1 flex items-center justify-center p-3 sm:p-8 overflow-hidden cursor-zoom-in"
@@ -147,42 +130,17 @@ export default function ProductPerspectiveModal() {
               transition: { type: "spring", stiffness: 280, damping: 26 } 
             }}
             exit={{ opacity: 0, scale: 0.88 }}
-            className="relative max-w-full max-h-[62vh] sm:max-h-[72vh] flex items-center justify-center"
+            className="relative max-w-full max-h-[64vh] sm:max-h-[72vh] flex items-center justify-center"
           >
             <img
               src={product.imageUrl}
               alt={product.name}
-              className="max-h-[60vh] sm:max-h-[70vh] max-w-full w-auto object-contain rounded-2xl shadow-2xl filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] pointer-events-none"
+              className="max-h-[62vh] sm:max-h-[70vh] max-w-full w-auto object-contain rounded-2xl shadow-2xl filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] pointer-events-none transition-transform duration-200"
               onError={(e) => {
                 e.target.src = "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=90";
               }}
             />
           </motion.div>
-
-          {/* Perspective selector pills (Floating in canvas) */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-neutral-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-neutral-800 shadow-xl z-20">
-            {perspectives.map((p, idx) => {
-              const Icon = p.icon;
-              const isActive = activeAngleIndex === idx;
-              return (
-                <button
-                  key={p.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSelectPerspective(p, idx);
-                  }}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition cursor-pointer ${
-                    isActive 
-                      ? "bg-white text-neutral-950 font-bold shadow-xs" 
-                      : "text-neutral-400 hover:text-white hover:bg-neutral-800"
-                  }`}
-                >
-                  <Icon className="w-3 h-3" />
-                  <span>{p.label}</span>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         {/* Bottom Floating Card: Price, Description & Purchase Action */}
@@ -221,34 +179,35 @@ export default function ProductPerspectiveModal() {
               </span>
             </div>
 
-            {/* Short description */}
-            <p className="text-xs text-neutral-300 line-clamp-2 leading-relaxed mb-4">
-              {product.description}
-            </p>
+            {product.description && (
+              <p className="text-xs text-neutral-300 line-clamp-2 leading-relaxed mb-4">
+                {product.description}
+              </p>
+            )}
 
-            {/* Action Buttons */}
+            {/* Actions Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <button
                 onClick={handleAddToCart}
                 disabled={isOutOfStock}
-                className={`w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-md active:scale-98 ${
-                  isOutOfStock
+                className={`w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer active:scale-98 shadow-lg ${
+                  isAddedRecently
+                    ? "bg-emerald-500 text-white"
+                    : isOutOfStock
                     ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
-                    : isAddedRecently
-                    ? "bg-emerald-600 text-white"
-                    : "bg-white hover:bg-neutral-100 text-neutral-950"
+                    : "bg-white text-neutral-950 hover:bg-neutral-100"
                 }`}
               >
                 {isAddedRecently ? (
                   <>
                     <Check className="w-4 h-4 text-white" />
-                    <span>¡Añadido al Carrito!</span>
+                    <span>¡Agregado al Pedido!</span>
                   </>
                 ) : (
                   <>
-                    <ShoppingBag className="w-4 h-4 text-neutral-900" />
+                    <ShoppingBag className="w-4 h-4" />
                     <span>
-                      {inCartItem ? `Agregar otro (${inCartItem.quantity} en pedido)` : "Añadir a mi Pedido"}
+                      {inCartItem ? `Añadir otro (${inCartItem.quantity} en carrito)` : "Añadir a mi Pedido"}
                     </span>
                   </>
                 )}
@@ -256,7 +215,7 @@ export default function ProductPerspectiveModal() {
 
               <button
                 onClick={handleWhatsAppInquiry}
-                className="w-full py-3 px-4 rounded-xl font-semibold text-xs text-neutral-300 hover:text-white bg-neutral-800/90 hover:bg-neutral-750 border border-neutral-700/80 transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                className="w-full py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm text-neutral-200 hover:text-white bg-neutral-800/80 hover:bg-neutral-700 border border-neutral-700/80 flex items-center justify-center gap-2 transition cursor-pointer active:scale-98"
               >
                 <MessageCircle className="w-4 h-4 text-emerald-400" />
                 <span>Consultar por WhatsApp</span>
@@ -264,7 +223,6 @@ export default function ProductPerspectiveModal() {
             </div>
           </div>
         </motion.div>
-
       </div>
     </AnimatePresence>
   );

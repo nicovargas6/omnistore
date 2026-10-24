@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useStore } from "../context/StoreContext";
 import DeliveryMapPicker from "./DeliveryMapPicker";
 import { 
@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Loader2,
   ArrowLeft,
+  ArrowRight,
   Building2,
   Sparkles,
   Check,
@@ -65,6 +66,10 @@ export default function CheckoutModal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptedConsent, setAcceptedConsent] = useState(false);
 
+  // Multi-step form state: 1 = Contact & Delivery, 2 = Payment Method & Confirmation
+  const [formStep, setFormStep] = useState(1);
+  const formScrollRef = useRef(null);
+
   // Bolivian Compliance (Invoicing & Alcohol Control)
   const [requestInvoice, setRequestInvoice] = useState(false);
   const [billingNit, setBillingNit] = useState("");
@@ -81,14 +86,13 @@ export default function CheckoutModal() {
   const [checkoutStep, setCheckoutStep] = useState("form");
   const [qrOrderRef, setQrOrderRef] = useState("");
   const [qrSecondsLeft, setQrSecondsLeft] = useState(599);
-  const [isSimulatingBank, setIsSimulatingBank] = useState(false);
 
   useEffect(() => {
     if (isCheckoutOpen) {
       toast.dismiss();
       setCheckoutStep("form");
+      setFormStep(1);
       setIsSubmitting(false);
-      setIsSimulatingBank(false);
       setQrOrderRef(`#ORD-${Math.floor(1000 + Math.random() * 9000)}`);
       setQrSecondsLeft(599);
     }
@@ -121,15 +125,20 @@ export default function CheckoutModal() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.name.trim() || !formData.phone.trim()) {
-      toast.error("Por favor completa tu nombre y teléfono.");
+  // Step 1 Validation & Proceed to Step 2
+  const handleGoToPaymentStep = () => {
+    if (!formData.name.trim()) {
+      toast.error("Por favor completa tu nombre completo.");
       return;
     }
 
-    if (!acceptedConsent) {
-      toast.error("Debes aceptar la Política de Privacidad y el tratamiento de datos para confirmar tu pedido.");
+    if (!formData.phone.trim()) {
+      toast.error("Por favor completa tu número de teléfono / WhatsApp.");
+      return;
+    }
+
+    if (isDelivery && !formData.address.trim()) {
+      toast.error("Por favor ingresa la dirección de entrega.");
       return;
     }
 
@@ -139,7 +148,7 @@ export default function CheckoutModal() {
     }
 
     if (requestInvoice && (!billingNit.trim() || !billingBusinessName.trim())) {
-      toast.error("Por favor completa el NIT/CI y la Razón Social para la emisión de tu factura.");
+      toast.error("Por favor completa el NIT/CI y la Razón Social para la factura.");
       return;
     }
 
@@ -148,6 +157,21 @@ export default function CheckoutModal() {
       if (formData.address) localStorage.setItem("omnistore_saved_address", formData.address);
     } catch {
       // ignore
+    }
+
+    setFormStep(2);
+    if (formScrollRef.current) {
+      formScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  // Final Order Submission from Step 2
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!acceptedConsent) {
+      toast.error("Debes aceptar la Política de Privacidad y el tratamiento de datos para confirmar tu pedido.");
+      return;
     }
 
     if (formData.paymentMethod.includes("QR")) {
@@ -212,7 +236,7 @@ export default function CheckoutModal() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={() => {
-            if (checkoutStep !== "qr_success") setIsCheckoutOpen(false);
+            if (checkoutStep !== "qr_payment") setIsCheckoutOpen(false);
           }}
           className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity"
         />
@@ -224,29 +248,45 @@ export default function CheckoutModal() {
           exit={{ opacity: 0, scale: 0.96, y: 10 }}
           className="relative bg-white w-full max-w-2xl sm:rounded-3xl shadow-2xl overflow-hidden z-10 border border-neutral-200 flex flex-col h-[100dvh] sm:h-auto sm:max-h-[92vh]"
         >
-          {/* VIEW 1: Standard Checkout Form */}
+          {/* VIEW 1: Multi-Step Checkout Form */}
           {checkoutStep === "form" && (
             <>
-              {/* Header */}
+              {/* Header with Step Indicator */}
               <div className="p-4 sm:p-6 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
-                    Finalizar Compra
-                  </span>
-                  <h2 className="text-lg sm:text-xl font-bold text-neutral-900">
-                    Detalles del Pedido & Entrega
+                <div className="min-w-0 pr-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                      formStep === 1 
+                        ? "bg-neutral-900 text-white" 
+                        : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                    }`}>
+                      1. Contacto & Entrega {formStep > 1 && "✓"}
+                    </span>
+                    <span className="text-neutral-300">/</span>
+                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                      formStep === 2 
+                        ? "bg-neutral-900 text-white" 
+                        : "bg-neutral-100 text-neutral-400 border border-neutral-200"
+                    }`}>
+                      2. Método de Pago
+                    </span>
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-bold text-neutral-900 truncate">
+                    {formStep === 1 ? "Información de Contacto & Entrega" : "Selecciona tu Método de Pago"}
                   </h2>
                 </div>
+
                 <button
                   onClick={() => setIsCheckoutOpen(false)}
-                  className="w-10 h-10 rounded-full bg-white hover:bg-neutral-100 flex items-center justify-center text-neutral-700 hover:text-neutral-950 transition cursor-pointer border border-neutral-200 shadow-sm active:scale-95"
+                  className="w-10 h-10 rounded-full bg-white hover:bg-neutral-100 flex items-center justify-center text-neutral-700 hover:text-neutral-950 transition cursor-pointer border border-neutral-200 shadow-sm active:scale-95 flex-shrink-0"
+                  title="Cerrar"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Form Body */}
-              <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-6">
+              {/* Form Body with scroll container */}
+              <div ref={formScrollRef} className="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1">
                 {/* Store Closed Warning Banner if outside hours */}
                 {!isStoreOpen && (
                   <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-2.5 text-xs text-rose-900">
@@ -254,380 +294,435 @@ export default function CheckoutModal() {
                     <div>
                       <span className="font-bold block">El local se encuentra cerrado en este momento</span>
                       <span className="text-[11px] text-rose-700">
-                        Horario de atención: {storeConfig.businessHours?.openTime || "11:00"} a {storeConfig.businessHours?.closeTime || "23:00"} ({storeConfig.businessHours?.days || "Lunes a Domingo"}). Tu pedido quedará registrado y se preparará tan pronto abra el local.
+                        Horario de atención: {storeConfig.businessHours?.openTime || "11:00"} a {storeConfig.businessHours?.closeTime || "23:00"}. Tu comanda quedará registrada y se procesará al reanudar actividades.
                       </span>
                     </div>
                   </div>
                 )}
 
-                {/* Step 1: Customer Contact */}
-                <div>
-                  <h3 className="text-xs font-bold text-neutral-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <User className="w-4 h-4 text-neutral-500" />
-                    <span>1. Información de Contacto</span>
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* ========================================================= */}
+                {/* ETAPA 1: INFORMACIÓN DE CONTACTO Y MODALIDAD DE ENTREGA   */}
+                {/* ========================================================= */}
+                {formStep === 1 && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    className="space-y-6"
+                  >
+                    {/* Seccion 1: Contacto */}
                     <div>
-                      <label className="block text-xs font-medium text-neutral-600 mb-1">
-                        Nombre Completo *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="Ej. Juan Pérez"
-                        className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-neutral-600 mb-1">
-                        Teléfono / WhatsApp *
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="Ej. +591 71234567"
-                        className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Step 2: Delivery Type & Address */}
-                <div>
-                  <h3 className="text-xs font-bold text-neutral-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <Truck className="w-4 h-4 text-neutral-500" />
-                    <span>2. Modalidad de Entrega</span>
-                  </h3>
-
-                  {/* Order type pills */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-                    {(storeConfig.orderTypes || ["Delivery a Domicilio", "Retiro en Local"]).map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, orderType: type })}
-                        className={`p-3 rounded-xl border text-left text-xs font-semibold transition cursor-pointer flex flex-col justify-between ${
-                          formData.orderType === type
-                            ? "bg-neutral-900 text-white border-neutral-900 shadow-xs"
-                            : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50"
-                        }`}
-                      >
-                        <span>{type}</span>
-                        <span className="text-[10px] font-normal opacity-80 mt-1">
-                          {type.toLowerCase().includes("delivery") || type.toLowerCase().includes("envío")
-                            ? `+ ${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)}`
-                            : "Sin costo"}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-
-                  {isDelivery && (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-xs font-medium text-neutral-600 mb-1">
-                          Dirección de Entrega (Calle, Altura, Piso / Referencias) *
-                        </label>
-                        <div className="relative">
-                          <MapPin className="absolute left-3 top-3 w-4 h-4 text-neutral-400" />
+                      <h3 className="text-xs font-bold text-neutral-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                        <User className="w-4 h-4 text-neutral-500" />
+                        <span>1. Información de Contacto</span>
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-neutral-600 mb-1">
+                            Nombre Completo *
+                          </label>
                           <input
                             type="text"
                             required
-                            value={formData.address}
-                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                            placeholder="Ej. Av. Ballivián 1240, Edif. Los Pinos"
-                            className="w-full pl-9 pr-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            placeholder="Ej. Juan Pérez"
+                            className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-neutral-600 mb-1">
+                            Teléfono / WhatsApp *
+                          </label>
+                          <input
+                            type="tel"
+                            required
+                            value={formData.phone}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            placeholder="Ej. +591 71234567"
+                            className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
                           />
                         </div>
                       </div>
-
-                      {/* Interactive Map Picker */}
-                      <DeliveryMapPicker
-                        onLocationSelect={(loc) => setDeliveryLocation(loc)}
-                      />
                     </div>
-                  )}
-                </div>
 
-                {/* Step 3: Payment Method */}
-                <div>
-                  <h3 className="text-xs font-bold text-neutral-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <Banknote className="w-4 h-4 text-neutral-500" />
-                    <span>3. Método de Pago</span>
-                  </h3>
+                    {/* Seccion 2: Modalidad de Entrega */}
+                    <div>
+                      <h3 className="text-xs font-bold text-neutral-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                        <Truck className="w-4 h-4 text-neutral-500" />
+                        <span>2. Modalidad de Entrega</span>
+                      </h3>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      {
-                        id: "QR Simple (Banca Móvil / Interoperable)",
-                        title: "QR Simple Interoperable",
-                        desc: "BNB, BCP, Unión, Mercantil, etc. 0% comisión y verificación automática sin comprobantes",
-                        icon: QrCode,
-                        color: "text-emerald-600",
-                        badge: "Recomendado"
-                      },
-                      {
-                        id: "Efectivo / Pago al recibir",
-                        title: "Efectivo al Recibir",
-                        desc: "Pagas contra entrega física en tu domicilio o al retirar en caja",
-                        icon: Banknote,
-                        color: "text-amber-600"
-                      }
-                    ].map((method) => {
-                      const Icon = method.icon;
-                      const isSelected = formData.paymentMethod === method.id;
-                      return (
-                        <button
-                          key={method.id}
-                          type="button"
-                          onClick={() => setFormData({ ...formData, paymentMethod: method.id })}
-                          className={`p-3 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between relative ${
-                            isSelected
-                              ? "bg-neutral-900 text-white border-neutral-900 shadow-xs"
-                              : "bg-white text-neutral-800 border-neutral-200 hover:bg-neutral-50"
-                          }`}
-                        >
-                          {method.badge && (
-                            <span className={`absolute -top-2 right-2 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
-                              isSelected ? "bg-emerald-400 text-neutral-950" : "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                            }`}>
-                              {method.badge}
+                      {/* Order type pills */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                        {(storeConfig.orderTypes || ["Delivery a Domicilio", "Retiro en Local"]).map((type) => (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, orderType: type })}
+                            className={`p-3 rounded-xl border text-left text-xs font-semibold transition cursor-pointer flex flex-col justify-between ${
+                              formData.orderType === type
+                                ? "bg-neutral-900 text-white border-neutral-900 shadow-xs"
+                                : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50"
+                            }`}
+                          >
+                            <span>{type}</span>
+                            <span className="text-[10px] font-normal opacity-80 mt-1">
+                              {type.toLowerCase().includes("delivery") || type.toLowerCase().includes("envío")
+                                ? `+ ${storeConfig.currency}${storeConfig.deliveryCost?.toFixed(2)}`
+                                : "Sin costo adicional"}
                             </span>
-                          )}
+                          </button>
+                        ))}
+                      </div>
+
+                      {isDelivery && (
+                        <div className="space-y-3">
                           <div>
-                            <div className="flex items-center gap-2 mb-1.5">
-                              <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? "text-white" : method.color}`} />
-                              <div className="text-xs font-bold">{method.title}</div>
-                            </div>
-                            <div className={`text-[11px] leading-snug ${isSelected ? "text-neutral-300" : "text-neutral-500"}`}>
-                              {method.desc}
+                            <label className="block text-xs font-medium text-neutral-600 mb-1">
+                              Dirección de Entrega (Calle, Edificio, Piso / Referencias) *
+                            </label>
+                            <div className="relative">
+                              <MapPin className="absolute left-3 top-3 w-4 h-4 text-neutral-400" />
+                              <input
+                                type="text"
+                                required
+                                value={formData.address}
+                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                placeholder="Ej. Av. Ballivián 1240, Edif. Los Pinos"
+                                className="w-full pl-9 pr-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
+                              />
                             </div>
                           </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
 
-                {/* Notes / Special Instructions */}
-                <div>
-                  <label className="block text-xs font-medium text-neutral-600 mb-1">
-                    Instrucciones Especiales o Aclaraciones (Opcional)
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    placeholder="Ej. Tocar timbre 'Pisos Altos', sin cebolla, dejar en recepción..."
-                    className="w-full px-3.5 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
-                  />
-                </div>
+                          {/* Interactive Map Picker with GPS */}
+                          <DeliveryMapPicker
+                            onLocationSelect={(loc) => setDeliveryLocation(loc)}
+                          />
+                        </div>
+                      )}
+                    </div>
 
-                {/* Step 4: Optional Invoicing (NIT / CI) */}
-                {storeConfig.billingEnabled !== false && (
-                  <div className="bg-neutral-50 rounded-2xl p-3.5 border border-neutral-200/80 space-y-3">
-                    <label className="flex items-center justify-between cursor-pointer select-none">
-                      <div className="flex items-center gap-2">
+                    {/* Ley N° 259: Control de Expendio de Bebidas Alcohólicas */}
+                    {hasAlcohol && (
+                      <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-3.5 space-y-2.5">
+                        <div className="flex items-start gap-2 text-amber-900">
+                          <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                          <div className="text-[11px] leading-snug font-medium">
+                            <strong>Ley N° 259 (Bolivia):</strong> El consumo excesivo de alcohol es dañino para la salud. Venta prohibida estrictamente a menores de 18 años.
+                          </div>
+                        </div>
+                        <label className="flex items-start gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={declaredOver18}
+                            onChange={(e) => setDeclaredOver18(e.target.checked)}
+                            className="w-4 h-4 mt-0.5 rounded border-amber-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                          />
+                          <span className="text-[11.5px] text-amber-950 font-semibold leading-tight">
+                            Declaro bajo juramento ser mayor de 18 años para la recepción de bebidas alcohólicas.
+                          </span>
+                        </label>
+                      </div>
+                    )}
+
+                    {/* Notes / Special Instructions */}
+                    <div>
+                      <label className="block text-xs font-medium text-neutral-600 mb-1">
+                        Instrucciones Especiales o Referencias Adicionales (Opcional)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={formData.notes}
+                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                        placeholder="Ej. Timbre 4B, sin cubiertos plásticos, dejar en portería..."
+                        className="w-full px-3.5 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
+                      />
+                    </div>
+
+                    {/* Optional Invoicing (NIT / CI) */}
+                    {storeConfig.billingEnabled !== false && (
+                      <div className="bg-neutral-50 rounded-2xl p-3.5 border border-neutral-200/80 space-y-3">
+                        <label className="flex items-center justify-between cursor-pointer select-none">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={requestInvoice}
+                              onChange={(e) => setRequestInvoice(e.target.checked)}
+                              className="w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 cursor-pointer"
+                            />
+                            <span className="text-xs font-bold text-neutral-800">
+                              ¿Deseas Factura con Crédito Fiscal?
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-neutral-500 font-medium">Opcional</span>
+                        </label>
+
+                        {requestInvoice && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-neutral-200/60"
+                          >
+                            <div>
+                              <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+                                NIT o C.I. del Titular *
+                              </label>
+                              <input
+                                type="text"
+                                required={requestInvoice}
+                                value={billingNit}
+                                onChange={(e) => setBillingNit(e.target.value)}
+                                placeholder="Ej. 1028475021 o 6789123"
+                                className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-base sm:text-xs font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+                                Razón Social o Nombre Factura *
+                              </label>
+                              <input
+                                type="text"
+                                required={requestInvoice}
+                                value={billingBusinessName}
+                                onChange={(e) => setBillingBusinessName(e.target.value)}
+                                placeholder="Ej. Juan Pérez o Mi Empresa S.R.L."
+                                className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                              />
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* BOTÓN SIGUIENTE AL COMPLETAR DATOS */}
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={handleGoToPaymentStep}
+                        className="w-full py-4 px-6 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-bold text-sm sm:text-base shadow-xl transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                      >
+                        <span>Siguiente: Método de Pago</span>
+                        <ArrowRight className="w-4 h-4 text-emerald-400" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* ========================================================= */}
+                {/* ETAPA 2: SECCIÓN 3. MÉTODO DE PAGO Y CONFIRMACIÓN         */}
+                {/* ========================================================= */}
+                {formStep === 2 && (
+                  <motion.form
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    onSubmit={handleSubmit}
+                    className="space-y-6"
+                  >
+                    {/* Back to Step 1 pill */}
+                    <div className="flex items-center justify-between bg-neutral-50 p-3 rounded-xl border border-neutral-200">
+                      <button
+                        type="button"
+                        onClick={() => setFormStep(1)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-neutral-700 hover:text-neutral-950 transition cursor-pointer"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Volver / Modificar datos de entrega</span>
+                      </button>
+                      <span className="text-[11px] text-neutral-500 font-medium truncate max-w-[180px] sm:max-w-xs text-right">
+                        {formData.name} • {formData.phone}
+                      </span>
+                    </div>
+
+                    {/* Seccion 3: Método de Pago */}
+                    <div>
+                      <h3 className="text-xs font-bold text-neutral-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                        <Banknote className="w-4 h-4 text-neutral-500" />
+                        <span>3. Método de Pago</span>
+                      </h3>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {[
+                          {
+                            id: "QR Simple (Banca Móvil / Interoperable)",
+                            title: "QR Simple Interoperable",
+                            desc: "BNB, BCP, Unión, Mercantil, etc. 0% comisión y verificación automática sin subir recibos",
+                            icon: QrCode,
+                            color: "text-emerald-600",
+                            badge: "Recomendado"
+                          },
+                          {
+                            id: "Efectivo / Pago al recibir",
+                            title: "Efectivo al Recibir",
+                            desc: "Pagas contra entrega en tu domicilio o al retirar tu pedido en el local",
+                            icon: Banknote,
+                            color: "text-amber-600"
+                          }
+                        ].map((method) => {
+                          const Icon = method.icon;
+                          const isSelected = formData.paymentMethod === method.id;
+                          return (
+                            <button
+                              key={method.id}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, paymentMethod: method.id })}
+                              className={`p-3.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between relative ${
+                                isSelected
+                                  ? "bg-neutral-900 text-white border-neutral-900 shadow-md ring-2 ring-neutral-900"
+                                  : "bg-white text-neutral-800 border-neutral-200 hover:bg-neutral-50"
+                              }`}
+                            >
+                              {method.badge && (
+                                <span className={`absolute -top-2 right-2 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                  isSelected ? "bg-emerald-400 text-neutral-950" : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                }`}>
+                                  {method.badge}
+                                </span>
+                              )}
+                              <div>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                  <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? "text-white" : method.color}`} />
+                                  <div className="text-xs font-bold">{method.title}</div>
+                                </div>
+                                <div className={`text-[11px] leading-snug ${isSelected ? "text-neutral-300" : "text-neutral-500"}`}>
+                                  {method.desc}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Resumen del Pedido */}
+                    <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200/80 space-y-2 text-xs">
+                      <div className="font-bold text-neutral-900 mb-2">Resumen de tu compra ({cart.length} artículos):</div>
+                      <div className="space-y-1 text-neutral-600 max-h-24 overflow-y-auto">
+                        {cart.map((item) => (
+                          <div key={item.cartItemId} className="flex justify-between">
+                            <span className="truncate pr-2">
+                              {item.quantity}x {item.name} {item.selectedOption ? `(${item.selectedOption})` : ""}
+                            </span>
+                            <span className="font-semibold text-neutral-900 flex-shrink-0">
+                              {storeConfig.currency} {(item.price * item.quantity).toFixed(2)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="pt-2 border-t border-neutral-200 flex justify-between text-neutral-600">
+                        <span>Subtotal:</span>
+                        <span>{storeConfig.currency} {cartSubtotal.toFixed(2)}</span>
+                      </div>
+                      {features.coupons && discountAmount > 0 && (
+                        <div className="flex justify-between text-emerald-700 font-semibold">
+                          <span>Descuento {appliedCoupon ? `(${appliedCoupon.code})` : ""}:</span>
+                          <span>-{storeConfig.currency} {discountAmount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-neutral-600">
+                        <span>Modalidad ({formData.orderType}):</span>
+                        <span>
+                          {isFreeShippingCoupon ? (
+                            <span className="text-emerald-700 font-semibold">Gratis (Cupón aplicado)</span>
+                          ) : (
+                            `${storeConfig.currency} ${deliveryCost.toFixed(2)}`
+                          )}
+                        </span>
+                      </div>
+                      <div className="pt-2 border-t border-neutral-200 flex justify-between text-sm font-bold text-neutral-950">
+                        <span>Total a Pagar:</span>
+                        <span className="text-base text-neutral-950 font-mono">
+                          {storeConfig.currency} {grandTotal.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Informed Legal Consent Checkbox (RGPD / Habeas Data Compliance) */}
+                    <div className="pt-1">
+                      <label className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer select-none transition ${
+                        !acceptedConsent ? "bg-amber-50/50 border-amber-200/80" : "bg-neutral-50 border-neutral-200"
+                      }`}>
                         <input
                           type="checkbox"
-                          checked={requestInvoice}
-                          onChange={(e) => setRequestInvoice(e.target.checked)}
-                          className="w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 cursor-pointer"
+                          checked={acceptedConsent}
+                          onChange={(e) => setAcceptedConsent(e.target.checked)}
+                          className="mt-0.5 w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 cursor-pointer"
                         />
-                        <span className="text-xs font-bold text-neutral-800">
-                          ¿Deseas Factura con Crédito Fiscal?
+                        <span className="text-[11.5px] sm:text-xs text-neutral-600 leading-relaxed">
+                          He leído y acepto la{" "}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              openLegalDoc("privacy");
+                            }}
+                            className="font-bold text-neutral-900 underline hover:text-emerald-700 cursor-pointer"
+                          >
+                            Política de Privacidad
+                          </button>{" "}
+                          y los{" "}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              openLegalDoc("terms");
+                            }}
+                            className="font-bold text-neutral-900 underline hover:text-emerald-700 cursor-pointer"
+                          >
+                            Términos de Servicio
+                          </button>{" "}
+                          para el procesamiento de mi pedido.
                         </span>
-                      </div>
-                      <span className="text-[10px] text-neutral-500 font-medium">Opcional</span>
-                    </label>
-
-                    {requestInvoice && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-neutral-200/60"
-                      >
-                        <div>
-                          <label className="block text-[11px] font-bold text-neutral-600 mb-1">
-                            NIT o C.I. del Titular *
-                          </label>
-                          <input
-                            type="text"
-                            required={requestInvoice}
-                            value={billingNit}
-                            onChange={(e) => setBillingNit(e.target.value)}
-                            placeholder="Ej. 1028475021 o 6789123"
-                            className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-neutral-600 mb-1">
-                            Razón Social o Nombre Factura *
-                          </label>
-                          <input
-                            type="text"
-                            required={requestInvoice}
-                            value={billingBusinessName}
-                            onChange={(e) => setBillingBusinessName(e.target.value)}
-                            placeholder="Ej. Juan Pérez o Mi Empresa S.R.L."
-                            className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                          />
-                        </div>
-                      </motion.div>
-                    )}
-                  </div>
-                )}
-
-                {/* Ley N° 259: Control de Expendio de Bebidas Alcohólicas */}
-                {hasAlcohol && (
-                  <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-3.5 space-y-2.5">
-                    <div className="flex items-start gap-2 text-amber-900">
-                      <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                      <div className="text-[11px] leading-snug font-medium">
-                        <strong>Ley N° 259 (Bolivia):</strong> El consumo excesivo de alcohol es dañino para la salud. Venta prohibida estrictamente a menores de 18 años.
-                      </div>
+                      </label>
                     </div>
-                    <label className="flex items-start gap-2 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={declaredOver18}
-                        onChange={(e) => setDeclaredOver18(e.target.checked)}
-                        className="w-4 h-4 mt-0.5 rounded border-amber-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
-                      />
-                      <span className="text-[11.5px] text-amber-950 font-semibold leading-tight">
-                        Declaro bajo juramento ser mayor de 18 años para la recepción de bebidas alcohólicas.
-                      </span>
-                    </label>
-                  </div>
-                )}
 
-                {/* Summary Box */}
-                <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200/80 space-y-2 text-xs">
-                  <div className="font-bold text-neutral-900 mb-2">Resumen de tu compra ({cart.length} artículos):</div>
-                  <div className="space-y-1 text-neutral-600 max-h-24 overflow-y-auto">
-                    {cart.map((item) => (
-                      <div key={item.cartItemId} className="flex justify-between">
-                        <span className="truncate pr-2">
-                          {item.quantity}x {item.name} {item.selectedOption ? `(${item.selectedOption})` : ""}
-                        </span>
-                        <span className="font-semibold text-neutral-900 flex-shrink-0">
-                          {storeConfig.currency} {(item.price * item.quantity).toFixed(2)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="pt-2 border-t border-neutral-200 flex justify-between text-neutral-600">
-                    <span>Subtotal:</span>
-                    <span>{storeConfig.currency} {cartSubtotal.toFixed(2)}</span>
-                  </div>
-                  {features.coupons && discountAmount > 0 && (
-                    <div className="flex justify-between text-emerald-700 font-semibold">
-                      <span>Descuento {appliedCoupon ? `(${appliedCoupon.code})` : ""}:</span>
-                      <span>-{storeConfig.currency} {discountAmount.toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-neutral-600">
-                    <span>Entrega ({formData.orderType}):</span>
-                    <span>
-                      {isFreeShippingCoupon ? (
-                        <span className="text-emerald-700 font-semibold">Gratis (Cupón aplicado)</span>
+                    {/* Submit Order Action */}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full py-4 px-6 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-bold text-sm shadow-xl transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-98"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Procesando Pedido...</span>
+                        </>
+                      ) : formData.paymentMethod.includes("QR") ? (
+                        <>
+                          <QrCode className="w-4 h-4 text-emerald-400" />
+                          <span>Continuar al Pago con QR — {storeConfig.currency} {grandTotal.toFixed(2)}</span>
+                        </>
                       ) : (
-                        `${storeConfig.currency} ${deliveryCost.toFixed(2)}`
+                        <>
+                          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                          <span>Confirmar Pedido en Efectivo — {storeConfig.currency} {grandTotal.toFixed(2)}</span>
+                        </>
                       )}
-                    </span>
-                  </div>
-                  <div className="pt-2 border-t border-neutral-200 flex justify-between text-sm font-bold text-neutral-950">
-                    <span>Total a Pagar:</span>
-                    <span className="text-base text-neutral-950 font-mono">
-                      {storeConfig.currency} {grandTotal.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Informed Legal Consent Checkbox (RGPD / Habeas Data Compliance) */}
-                <div className="pt-1">
-                  <label className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer select-none transition ${
-                    !acceptedConsent ? "bg-amber-50/50 border-amber-200/80" : "bg-neutral-50 border-neutral-200"
-                  }`}>
-                    <input
-                      type="checkbox"
-                      checked={acceptedConsent}
-                      onChange={(e) => setAcceptedConsent(e.target.checked)}
-                      className="mt-0.5 w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 cursor-pointer"
-                    />
-                    <span className="text-[11.5px] sm:text-xs text-neutral-600 leading-relaxed">
-                      He leído y acepto la{" "}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          openLegalDoc("privacy");
-                        }}
-                        className="font-bold text-neutral-900 underline hover:text-emerald-700 cursor-pointer"
-                      >
-                        Política de Privacidad
-                      </button>{" "}
-                      y los{" "}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          openLegalDoc("terms");
-                        }}
-                        className="font-bold text-neutral-900 underline hover:text-emerald-700 cursor-pointer"
-                      >
-                        Términos de Servicio
-                      </button>{" "}
-                      para el procesamiento y entrega de mi pedido.
-                    </span>
-                  </label>
-                </div>
-
-                {/* Submit Action */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-4 px-6 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-bold text-sm shadow-lg transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-98"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Procesando Pedido...</span>
-                    </>
-                  ) : formData.paymentMethod.includes("QR") ? (
-                    <>
-                      <QrCode className="w-4 h-4 text-emerald-400" />
-                      <span>Continuar al Pago con QR — {storeConfig.currency} {grandTotal.toFixed(2)}</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                      <span>Confirmar Pedido — {storeConfig.currency} {grandTotal.toFixed(2)}</span>
-                    </>
-                  )}
-                </button>
-              </form>
+                    </button>
+                  </motion.form>
+                )}
+              </div>
             </>
           )}
 
-          {/* VIEW 2: QR Simple Payment Screen (0% Commission, Exact Amount, Zero Manual Upload) */}
+          {/* VIEW 2: QR Simple Payment Screen */}
           {checkoutStep === "qr_payment" && (
             <div className="p-5 sm:p-7 flex flex-col justify-between max-h-[90vh] overflow-y-auto space-y-5">
               {/* Top Navigation */}
               <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                 <button
                   type="button"
-                  onClick={() => setCheckoutStep("form")}
+                  onClick={() => {
+                    setCheckoutStep("form");
+                    setFormStep(2);
+                  }}
                   className="flex items-center gap-1.5 text-xs font-semibold text-neutral-500 hover:text-neutral-900 transition cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>Volver a datos del pedido</span>
+                  <span>Volver a método de pago</span>
                 </button>
                 <div className="flex items-center gap-1.5 text-[11px] font-mono text-neutral-400">
                   <Clock className="w-3.5 h-3.5 text-amber-500" />
@@ -669,25 +764,20 @@ export default function CheckoutModal() {
               {/* The Interactive QR Code Box */}
               <div className="bg-white rounded-3xl border-2 border-dashed border-neutral-300 p-5 sm:p-6 text-center max-w-xs mx-auto shadow-sm space-y-3">
                 <div className="relative mx-auto w-48 h-48 sm:w-52 sm:h-52 bg-neutral-900 rounded-2xl p-3 flex items-center justify-center shadow-md">
-                  {/* High quality SVG QR graphic representation */}
                   <svg
                     viewBox="0 0 100 100"
                     className="w-full h-full text-white fill-current"
                     shapeRendering="crispEdges"
                   >
-                    {/* Corner 1 */}
                     <rect x="5" y="5" width="26" height="26" fill="white" />
                     <rect x="9" y="9" width="18" height="18" fill="black" />
                     <rect x="13" y="13" width="10" height="10" fill="white" />
-                    {/* Corner 2 */}
                     <rect x="69" y="5" width="26" height="26" fill="white" />
                     <rect x="73" y="9" width="18" height="18" fill="black" />
                     <rect x="77" y="13" width="10" height="10" fill="white" />
-                    {/* Corner 3 */}
                     <rect x="5" y="69" width="26" height="26" fill="white" />
                     <rect x="9" y="73" width="18" height="18" fill="black" />
                     <rect x="13" y="77" width="10" height="10" fill="white" />
-                    {/* Matrix data dots */}
                     <rect x="36" y="8" width="6" height="6" fill="white" />
                     <rect x="46" y="8" width="6" height="6" fill="white" />
                     <rect x="56" y="8" width="6" height="6" fill="white" />
@@ -705,7 +795,6 @@ export default function CheckoutModal() {
                     <rect x="46" y="76" width="12" height="6" fill="white" />
                     <rect x="46" y="86" width="6" height="6" fill="white" />
                     <rect x="60" y="76" width="8" height="16" fill="white" />
-                    {/* Center badge */}
                     <rect x="36" y="36" width="28" height="28" rx="4" fill="#059669" />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

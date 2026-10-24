@@ -91,8 +91,8 @@ test.describe('OmniStore Pro — Suite E2E', () => {
     await page.getByRole('button', { name: /Mi Pedido/i }).click();
     await page.getByRole('button', { name: /Continuar al Checkout/i }).click();
 
-    // Checkout modal is visible
-    await expect(page.getByText('Detalles del Pedido & Entrega')).toBeVisible();
+    // Checkout modal is visible in Step 1 (Contact & Delivery)
+    await expect(page.getByText(/Información de Contacto & Entrega/i)).toBeVisible();
 
     // Ley 259 alcohol banner must be displayed because cart has alcohol
     await expect(page.getByText(/Ley N° 259/i)).toBeVisible();
@@ -108,22 +108,30 @@ test.describe('OmniStore Pro — Suite E2E', () => {
     await page.locator("input[placeholder*='Ej. +591']").fill('+591 78901234');
     await page.locator("input[placeholder*='Ej. Av. Ballivián']").fill('Av. América #340, Cochabamba');
 
-    // Check privacy / terms consent
-    const privacyCheckbox = page.locator("label:has-text('He leído y acepto') input[type='checkbox']");
-    await privacyCheckbox.check();
+    // Edge case: Click "Siguiente: Método de Pago" without checking +18 declaration
+    const nextBtn = page.getByRole('button', { name: /Siguiente: Método de Pago/i });
+    await nextBtn.click();
 
-    // Edge case: Click submit without checking +18 declaration
-    const submitBtn = page.getByRole('button', { name: /Continuar al Pago con QR/i });
-    await submitBtn.click();
-
-    // Modal should remain open in form step because +18 was not accepted
-    await expect(page.getByText('Detalles del Pedido & Entrega')).toBeVisible();
+    // Should remain in Step 1 because +18 was not accepted
+    await expect(page.getByText(/Información de Contacto & Entrega/i)).toBeVisible();
 
     // Now check +18 declaration
     await alcoholCheckbox.check();
     await expect(alcoholCheckbox).toBeChecked();
 
-    // Now submit order
+    // Click "Siguiente: Método de Pago" to advance to Step 2
+    await nextBtn.click();
+
+    // Step 2 is now visible
+    await expect(page.getByText(/Selecciona tu Método de Pago/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Volver \/ Modificar datos de entrega/i })).toBeVisible();
+
+    // Check privacy / terms consent
+    const privacyCheckbox = page.locator("label:has-text('He leído y acepto') input[type='checkbox']");
+    await privacyCheckbox.check();
+
+    // Now submit order to QR payment screen
+    const submitBtn = page.getByRole('button', { name: /Continuar al Pago con QR/i });
     await submitBtn.click();
 
     // Seamless transition to QR Simple payment screen (NO white screen)

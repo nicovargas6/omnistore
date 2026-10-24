@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { MapPin, Navigation, Check, AlertCircle, ExternalLink } from "lucide-react";
+import { MapPin, Navigation, Check, AlertCircle, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 // High-resolution SVG pin for Leaflet
@@ -26,7 +26,7 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
 
-  // Default coordinate centered in Cochabamba, Bolivia
+  // Default coordinate centered in Cochabamba, Bolivia (-17.3935, -66.1570)
   const [coords, setCoords] = useState(
     initialCoords || { lat: -17.3935, lng: -66.1570 }
   );
@@ -100,45 +100,85 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
     };
   }, []);
 
-  // Use Browser Geolocation (GPS)
+  // Multi-tier resilient Geolocation (Hardware GPS -> Network Wi-Fi/Cell -> IP Fallback)
   const handleUseCurrentLocation = () => {
+    if (isLocating) return;
+
+    const applyLocation = (lat, lng, label) => {
+      setIsLocating(false);
+      const updated = { lat, lng };
+      setCoords(updated);
+      setHasPinned(true);
+
+      if (mapInstanceRef.current && markerRef.current) {
+        mapInstanceRef.current.setView([lat, lng], 16);
+        markerRef.current.setLatLng([lat, lng]);
+      }
+
+      if (onLocationSelect) {
+        onLocationSelect({
+          ...updated,
+          googleMapsUrl: `https://www.google.com/maps?q=${lat.toFixed(6)},${lng.toFixed(6)}`,
+        });
+      }
+      toast.success(label || "¡Ubicación GPS fijada en el mapa!");
+    };
+
     if (!navigator.geolocation) {
-      toast.error("Tu navegador no soporta geolocalización.");
+      fallbackToIpLookup(applyLocation);
       return;
     }
 
     setIsLocating(true);
+
+    // Tier 1: Hardware High-Accuracy GPS (7s timeout)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setIsLocating(false);
-        const userLat = pos.coords.latitude;
-        const userLng = pos.coords.longitude;
-        const updated = { lat: userLat, lng: userLng };
-
-        setCoords(updated);
-        setHasPinned(true);
-
-        if (mapInstanceRef.current && markerRef.current) {
-          mapInstanceRef.current.setView([userLat, userLng], 16);
-          markerRef.current.setLatLng([userLat, userLng]);
-        }
-
-        if (onLocationSelect) {
-          onLocationSelect({
-            ...updated,
-            googleMapsUrl: `https://www.google.com/maps?q=${userLat.toFixed(6)},${userLng.toFixed(6)}`,
-          });
-        }
-        toast.success("¡Ubicación GPS detectada y fijada en el mapa!");
+        applyLocation(pos.coords.latitude, pos.coords.longitude, "¡Ubicación GPS de alta precisión detectada!");
       },
-      (err) => {
-        setIsLocating(false);
-        toast.warning(
-          "No pudimos acceder a tu GPS. Por favor toca en el mapa para marcar tu casa."
+      (highErr) => {
+        // If user actively blocked location permissions in browser settings
+        if (highErr.code === 1) { // PERMISSION_DENIED
+          setIsLocating(false);
+          toast.warning("Permiso de ubicación desactivado en tu navegador. Puedes tocar directamente en el mapa para marcar tu casa.");
+          return;
+        }
+
+        // Tier 2: Low-Accuracy (Wi-Fi / Cell tower / Network triangulation) - works indoors
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            applyLocation(pos.coords.latitude, pos.coords.longitude, "¡Ubicación por red detectada y fijada!");
+          },
+          (lowErr) => {
+            // Tier 3: IP Location fallback
+            fallbackToIpLookup(applyLocation);
+          },
+          { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
         );
       },
-      { timeout: 10000, enableHighAccuracy: true }
+      { enableHighAccuracy: true, timeout: 7000, maximumAge: 60000 }
     );
+  };
+
+  const fallbackToIpLookup = (applyLocation) => {
+    fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data.latitude === "number" && typeof data.longitude === "number") {
+          applyLocation(
+            data.latitude, 
+            data.longitude, 
+            `Ubicación aproximada detectada (${data.city || "tu ciudad"}). Puedes ajustar el pin si lo necesitas.`
+          );
+        } else {
+          setIsLocating(false);
+          toast.warning("No pudimos obtener tu señal GPS. Toca en cualquier punto del mapa para fijar tu dirección.");
+        }
+      })
+      .catch(() => {
+        setIsLocating(false);
+        toast.warning("No se pudo conectar con el GPS. Toca sobre el mapa para fijar tu ubicación.");
+      });
   };
 
   const googleMapsLink = `https://www.google.com/maps?q=${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`;
@@ -148,16 +188,25 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
       <div className="flex items-center justify-between text-xs">
         <span className="font-semibold text-neutral-700 flex items-center gap-1.5">
           <MapPin className="w-3.5 h-3.5 text-rose-600" />
-          <span>Marca el punto exacto de tu domicilio (Pintea en el mapa):</span>
+          <span>Marca el punto exacto de tu domicilio en el mapa:</span>
         </span>
         <button
           type="button"
           onClick={handleUseCurrentLocation}
           disabled={isLocating}
-          className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition cursor-pointer"
+          className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 hover:text-emerald-950 bg-emerald-100 hover:bg-emerald-200 px-3 py-1.5 rounded-lg border border-emerald-300 transition cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
         >
-          <Navigation className={`w-3 h-3 ${isLocating ? "animate-spin" : ""}`} />
-          <span>{isLocating ? "Localizando..." : "Mi Ubicación Actual"}</span>
+          {isLocating ? (
+            <>
+              <Loader2 className="w-3 h-3 animate-spin text-emerald-700" />
+              <span>Detectando GPS...</span>
+            </>
+          ) : (
+            <>
+              <Navigation className="w-3 h-3 text-emerald-700" />
+              <span>Mi Ubicación Actual</span>
+            </>
+          )}
         </button>
       </div>
 
@@ -166,9 +215,9 @@ export default function DeliveryMapPicker({ onLocationSelect, initialCoords }) {
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
         {/* Floating Instruction Badge */}
-        <div className="absolute top-2.5 left-2.5 z-[400] bg-white/90 backdrop-blur-md px-3 py-1 rounded-xl text-[11px] font-medium text-neutral-800 shadow-sm border border-neutral-200 flex items-center gap-1.5 pointer-events-none">
+        <div className="absolute top-2.5 left-2.5 z-[400] bg-white/95 backdrop-blur-md px-3 py-1 rounded-xl text-[11px] font-medium text-neutral-800 shadow-sm border border-neutral-200 flex items-center gap-1.5 pointer-events-none">
           <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
-          <span>Toca o arrastra el pin hasta la puerta de tu casa</span>
+          <span>Toca o arrastra el pin hasta tu ubicación</span>
         </div>
       </div>
 
