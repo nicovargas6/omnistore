@@ -314,7 +314,7 @@ export default function StorefrontView() {
 
         <div className="border-t border-neutral-200/80 py-4 px-4 text-center text-neutral-500 text-[11px] flex flex-col sm:flex-row items-center justify-between max-w-7xl mx-auto gap-2">
           <span>© {new Date().getFullYear()} {storeConfig.name}. Todos los derechos reservados.</span>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3.5 sm:pr-40">
             <button onClick={() => navigateTo("privacy")} className="hover:underline cursor-pointer">
               Privacidad
             </button>
@@ -329,48 +329,54 @@ export default function StorefrontView() {
             <span>•</span>
             <button
               onClick={() => enterAdminMode("dashboard")}
-              className="text-neutral-400 hover:text-neutral-700 cursor-pointer p-0.5 rounded transition"
+              className="inline-flex items-center gap-1 text-neutral-400 hover:text-amber-500 hover:bg-neutral-100 px-1.5 py-0.5 rounded-md transition cursor-pointer"
               title="Acceso de Gestión (o presiona Alt + A)"
             >
-              <Lock className="w-3 h-3" />
+              <Lock className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-medium hidden sm:inline">Admin</span>
             </button>
           </div>
         </div>
       </footer>
 
-      {/* Floating WhatsApp AI Assistant Button (when module is enabled) */}
+      {/* Floating Minimalist WhatsApp AI Assistant Button */}
       <AnimatePresence>
         {features.whatsappAiAgent && (
           <motion.div
-            initial={{ scale: 0, opacity: 0, y: 20 }}
+            initial={{ scale: 0, opacity: 0, y: 16 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0, opacity: 0, y: 20 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            className="fixed bottom-6 right-6 z-40"
+            exit={{ scale: 0, opacity: 0, y: 16 }}
+            transition={{ type: "spring", stiffness: 320, damping: 24 }}
+            className="fixed bottom-6 right-5 sm:bottom-7 sm:right-7 z-40"
           >
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.94 }}
               onClick={() => setIsAiSimulatorOpen(true)}
-              className="group flex items-center gap-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white pl-3.5 pr-4 py-2.5 rounded-full shadow-lg hover:shadow-xl hover:shadow-emerald-900/25 transition-all duration-200 cursor-pointer border border-emerald-400/30"
-              title={`Chatear con el Agente IA de ${storeConfig.name}`}
+              className="group relative flex items-center gap-2.5 bg-neutral-900/95 hover:bg-neutral-900 text-white pl-3 pr-3.5 py-2 rounded-full shadow-lg hover:shadow-xl border border-neutral-700/80 backdrop-blur-md transition-all duration-200 cursor-pointer"
+              title={`Asistente Virtual IA de ${storeConfig.name}`}
             >
-              <div className="relative flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-white" />
+              {/* Subtle Ambient Pulse Ring */}
+              <span className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-emerald-500/25 to-teal-500/25 opacity-70 blur-xs group-hover:opacity-100 transition duration-300 animate-pulse pointer-events-none" />
+
+              {/* Bot Icon with active presence dot */}
+              <div className="relative flex items-center justify-center flex-shrink-0">
+                <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
+                  <Bot className="w-4 h-4" />
                 </div>
-                <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-200 ring-2 ring-emerald-700"></span>
+                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 ring-2 ring-neutral-900" />
                 </span>
               </div>
-              <div className="text-left">
-                <div className="text-[11px] font-black uppercase tracking-wider leading-tight flex items-center gap-1">
-                  <span>WhatsApp IA</span>
-                  <span className="text-[9px] bg-emerald-800/60 font-semibold px-1 rounded text-emerald-100">En Vivo</span>
-                </div>
-                <div className="text-[10px] text-emerald-100/90 font-medium leading-none mt-0.5">
-                  ¿Dudas o pedidos? Chatea aquí
-                </div>
+
+              {/* Typography: Clean, Minimalist & Compact */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold tracking-tight">
+                <span className="text-neutral-100 font-medium">Asistente IA</span>
+                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider bg-emerald-950/90 px-1.5 py-0.5 rounded-md border border-emerald-500/30">
+                  En vivo
+                </span>
               </div>
-            </button>
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
