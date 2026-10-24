@@ -174,6 +174,18 @@ export function StoreProvider({ children }) {
     return () => window.removeEventListener("popstate", handleUrlChange);
   }, []);
 
+  // Secret admin keyboard shortcut (Alt + A)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.altKey && (e.key === "a" || e.key === "A")) {
+        e.preventDefault();
+        enterAdminMode("dashboard");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isAdminAuthenticated, storeConfig.adminPin]);
+
   const [soundAlertsEnabled, setSoundAlertsEnabled] = useState(true);
 
   const toggleSoundAlerts = () => {

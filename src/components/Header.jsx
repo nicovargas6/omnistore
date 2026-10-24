@@ -181,43 +181,42 @@ export default function Header() {
 
         {/* View Switcher & Cart */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Mode Switcher: Client View vs Admin Panel */}
-          <div className="bg-neutral-100 p-1 rounded-xl flex items-center border border-neutral-200 text-xs">
-            <button
-              onClick={() => setViewMode("storefront")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer ${
-                viewMode === "storefront"
-                  ? "bg-white text-neutral-900 shadow-sm"
-                  : "text-neutral-500 hover:text-neutral-900"
-              }`}
-            >
-              <Store className="w-4 h-4" />
-              <span className="hidden sm:inline">Tienda</span>
-            </button>
-            <button
-              onClick={() => enterAdminMode("dashboard")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer ${
-                viewMode === "admin"
-                  ? "bg-neutral-900 text-white shadow-sm"
-                  : "text-neutral-500 hover:text-neutral-900"
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span className="hidden sm:inline">Admin</span>
-              <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-            </button>
+          {/* Mode Switcher: ONLY VISIBLE IF ADMIN IS AUTHENTICATED */}
+          {isAdminAuthenticated && (
+            <div className="bg-neutral-900 text-white p-1 rounded-xl flex items-center border border-neutral-700 text-xs shadow-sm">
+              <button
+                onClick={() => setViewMode("storefront")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer ${
+                  viewMode === "storefront"
+                    ? "bg-white text-neutral-900 shadow-sm"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                <Store className="w-4 h-4" />
+                <span className="hidden sm:inline">Ver como Cliente</span>
+              </button>
+              <button
+                onClick={() => setViewMode("admin")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer ${
+                  viewMode === "admin"
+                    ? "bg-amber-400 text-neutral-950 font-bold shadow-sm"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span className="hidden sm:inline">Admin</span>
+              </button>
 
-            {viewMode === "admin" && (
               <button
                 onClick={logoutAdmin}
                 className="ml-1 flex items-center gap-1 px-2 py-1.5 rounded-lg text-neutral-400 hover:text-rose-400 hover:bg-neutral-800 transition cursor-pointer"
                 title="Cerrar y bloquear sesión administrativa"
               >
                 <Lock className="w-3.5 h-3.5" />
-                <span className="hidden md:inline text-[11px]">Bloquear</span>
+                <span className="hidden md:inline text-[11px]">Salir</span>
               </button>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Cart Trigger */}
           {viewMode === "storefront" && (

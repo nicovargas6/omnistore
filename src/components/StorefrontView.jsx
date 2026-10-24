@@ -18,7 +18,8 @@ import {
   Heart,
   LayoutDashboard,
   Bot,
-  MessageCircle
+  MessageCircle,
+  Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BUSINESS_PRESETS } from "../data/presets";
@@ -37,7 +38,8 @@ export default function StorefrontView() {
     openLegalDoc,
     openPrivacyCenter,
     navigateTo,
-    enterAdminMode
+    enterAdminMode,
+    isAdminAuthenticated
   } = useStore();
 
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -278,21 +280,35 @@ export default function StorefrontView() {
             </ul>
           </div>
 
-          {/* Col 4: Admin shortcuts */}
+          {/* Col 4: Customer service or Admin Panel if authenticated */}
           <div className="space-y-3">
             <div className="font-bold text-neutral-900 text-xs uppercase tracking-wider">
-              Control & Gestión
+              {isAdminAuthenticated ? "Panel de Gestión" : "Atención & Despachos"}
             </div>
-            <p className="text-neutral-500 text-xs">
-              Accede al panel central para gestionar comandas, inventario y métricas en vivo.
-            </p>
-            <button
-              onClick={() => enterAdminMode("dashboard")}
-              className="w-full flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white py-2.5 px-4 rounded-xl font-bold text-xs shadow-xs transition cursor-pointer"
-            >
-              <LayoutDashboard className="w-3.5 h-3.5" />
-              <span>Abrir Panel Administrador</span>
-            </button>
+            {isAdminAuthenticated ? (
+              <>
+                <p className="text-neutral-500 text-xs leading-relaxed">
+                  Sesión administrativa activa. Gestiona comandas, catálogo y finanzas en tiempo real.
+                </p>
+                <button
+                  onClick={() => enterAdminMode("dashboard")}
+                  className="w-full flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white py-2.5 px-4 rounded-xl font-bold text-xs shadow-xs transition cursor-pointer"
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <span>Abrir Panel Administrador</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-neutral-500 text-xs leading-relaxed">
+                  Cocina y bar abiertos para pedidos directos. Despacho rápido a domicilio y retiro en salón.
+                </p>
+                <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 text-neutral-700 text-xs space-y-1">
+                  <div>⏰ <strong>Horario:</strong> {storeConfig.businessHours?.openTime || "11:00"} a {storeConfig.businessHours?.closeTime || "23:00"}</div>
+                  <div>📍 <strong>Ubicación:</strong> {storeConfig.address}</div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -308,7 +324,15 @@ export default function StorefrontView() {
             </button>
             <span>•</span>
             <button onClick={openPrivacyCenter} className="hover:underline cursor-pointer text-emerald-700 font-semibold">
-              Mis Datos Personales
+              Mis Datos
+            </button>
+            <span>•</span>
+            <button
+              onClick={() => enterAdminMode("dashboard")}
+              className="text-neutral-400 hover:text-neutral-700 cursor-pointer p-0.5 rounded transition"
+              title="Acceso de Gestión (o presiona Alt + A)"
+            >
+              <Lock className="w-3 h-3" />
             </button>
           </div>
         </div>

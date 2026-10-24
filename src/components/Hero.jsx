@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { InteractiveHoverButton } from "./ui/InteractiveHoverButton";
 
 export default function Hero({ onExploreClick }) {
-  const { storeConfig, enterAdminMode } = useStore();
+  const { storeConfig, enterAdminMode, isAdminAuthenticated } = useStore();
 
   const handleWhatsAppClick = () => {
     const cleanPhone = storeConfig.phoneWhatsApp.replace(/[^0-9]/g, "");
@@ -79,14 +79,16 @@ export default function Hero({ onExploreClick }) {
             </InteractiveHoverButton>
           </div>
 
-          <button
-            onClick={() => enterAdminMode("customizer")}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-neutral-300 hover:text-white bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-md transition cursor-pointer"
-            title="Ir al personalizador visual en el Panel Admin"
-          >
-            <Edit3 className="w-3.5 h-3.5 text-amber-300" />
-            <span>Personalizar portada y marca</span>
-          </button>
+          {isAdminAuthenticated && (
+            <button
+              onClick={() => enterAdminMode("customizer")}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-neutral-300 hover:text-white bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-md transition cursor-pointer"
+              title="Ir al personalizador visual en el Panel Admin"
+            >
+              <Edit3 className="w-3.5 h-3.5 text-amber-300" />
+              <span>Personalizar portada y marca</span>
+            </button>
+          )}
         </motion.div>
       </div>
 

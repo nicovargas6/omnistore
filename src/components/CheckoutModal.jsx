@@ -17,7 +17,8 @@ import {
   Building2,
   Sparkles,
   Check,
-  Clock
+  Clock,
+  AlertCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -36,7 +37,10 @@ export default function CheckoutModal() {
     discountAmount,
     isStoreOpen,
     openLegalDoc,
+    openTracking,
   } = useStore();
+
+  const [createdQrOrder, setCreatedQrOrder] = useState(null);
 
   const [formData, setFormData] = useState(() => {
     let savedPhone = "";
@@ -146,7 +150,31 @@ export default function CheckoutModal() {
     }
 
     if (formData.paymentMethod.includes("QR")) {
-      setCheckoutStep("qr_payment");
+      setIsSubmitting(true);
+      setTimeout(() => {
+        const order = placeOrder({
+          customerName: formData.name,
+          customerPhone: formData.phone,
+          customerAddress: isDelivery ? formData.address : formData.orderType,
+          deliveryCoords: isDelivery ? deliveryLocation : null,
+          googleMapsUrl: isDelivery && deliveryLocation ? deliveryLocation.googleMapsUrl : null,
+          orderType: formData.orderType,
+          paymentMethod: "QR Simple (Esperando Acreditación)",
+          paymentStatus: "esperando_deposito_qr",
+          notes: formData.notes,
+          billing: requestInvoice ? {
+            required: true,
+            nit: billingNit.trim(),
+            businessName: billingBusinessName.trim()
+          } : null,
+        });
+
+        setIsSubmitting(false);
+        setCreatedQrOrder(order);
+        setQrOrderRef(order.code);
+        setCheckoutStep("qr_payment");
+        toast.info(`Comanda ${order.code} registrada. Realiza la transferencia QR.`);
+      }, 500);
       return;
     }
 
@@ -172,52 +200,6 @@ export default function CheckoutModal() {
       setIsSubmitting(false);
       toast.success(`¡Pedido ${order.code} generado con éxito!`);
     }, 700);
-  };
-
-  // Trigger QR payment registration
-  const handleVerifyQrPayment = () => {
-    setIsSimulatingBank(true);
-
-    setTimeout(() => {
-      setIsSimulatingBank(false);
-      setCheckoutStep("qr_success");
-
-      try {
-        confetti({
-          particleCount: 90,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ["#10b981", "#3b82f6", "#f59e0b"]
-        });
-      } catch (e) {
-        console.log("Confetti", e);
-      }
-
-      toast.success("¡Comprobante de abono registrado!", {
-        description: `El comercio confirmará el depósito de ${storeConfig.currency} ${grandTotal.toFixed(2)} en su app bancaria.`
-      });
-
-      // Place order after brief confirmation
-      setTimeout(() => {
-        placeOrder({
-          customerName: formData.name,
-          customerPhone: formData.phone,
-          customerAddress: isDelivery ? formData.address : formData.orderType,
-          deliveryCoords: isDelivery ? deliveryLocation : null,
-          googleMapsUrl: isDelivery && deliveryLocation ? deliveryLocation.googleMapsUrl : null,
-          orderType: formData.orderType,
-          paymentMethod: "QR Simple (Comprobante reportado)",
-          paymentStatus: "verificacion_pendiente",
-          paidAt: new Date().toISOString(),
-          notes: formData.notes,
-          billing: requestInvoice ? {
-            required: true,
-            nit: billingNit.trim(),
-            businessName: billingBusinessName.trim()
-          } : null,
-        });
-      }, 1400);
-    }, 1000);
   };
 
   return (
@@ -753,67 +735,57 @@ export default function CheckoutModal() {
                 </div>
               </div>
 
-              {/* Real-time Radar Listener Indicator */}
-              <div className="p-3.5 bg-blue-50/80 border border-blue-200 rounded-2xl flex items-center justify-center gap-3 text-xs text-blue-900 font-semibold">
-                <span className="relative flex h-3 w-3 flex-shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-600"></span>
-                </span>
-                <span className="leading-tight">
-                  Escanea el código QR desde tu app bancaria con el monto exacto.
-                </span>
-              </div>
-
-              {/* Action Button */}
-              <div className="space-y-2 pt-1">
-                <button
-                  type="button"
-                  disabled={isSimulatingBank}
-                  onClick={handleVerifyQrPayment}
-                  className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-98"
-                >
-                  {isSimulatingBank ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      <span>Registrando comprobante de transferencia...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 text-emerald-200" />
-                      <span>Ya realicé la transferencia QR (Registrar Pedido)</span>
-                    </>
-                  )}
-                </button>
-                <p className="text-[10px] text-center text-neutral-400">
-                  Tu orden ingresará directamente al panel de cocina y el cajero confirmará el depósito en su app bancaria.
+              {/* Bank Transfer Waiting Status Banner */}
+              <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl space-y-2 text-center">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 font-bold text-xs border border-amber-300">
+                  <Clock className="w-3.5 h-3.5 text-amber-600 animate-spin" />
+                  <span>Esperando Acreditación Bancaria</span>
+                </div>
+                <p className="text-xs text-amber-950 leading-relaxed max-w-sm mx-auto">
+                  Tu comanda <strong className="font-mono text-neutral-900">{createdQrOrder?.code || qrOrderRef}</strong> ya está registrada en el sistema. Realiza la transferencia desde tu banca móvil. Cuando el depósito ingrese a la cuenta del local, se confirmará tu pedido y pasará a cocina.
                 </p>
               </div>
-            </div>
-          )}
 
-          {/* VIEW 3: Instant Verified Celebration Screen */}
-          {checkoutStep === "qr_success" && (
-            <motion.div
-              initial={{ scale: 0.92, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="p-8 sm:p-12 text-center space-y-4 my-auto"
-            >
-              <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto ring-8 ring-emerald-50">
-                <Check className="w-10 h-10 stroke-[3]" />
+              {/* Action Buttons for the customer */}
+              <div className="space-y-2 pt-1">
+                {features.orderTracking && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCheckoutOpen(false);
+                      openTracking(createdQrOrder || qrOrderRef);
+                    }}
+                    className="w-full py-3 px-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-bold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                  >
+                    <Clock className="w-4 h-4 text-amber-400" />
+                    <span>Ver Seguimiento de mi Pedido en Vivo</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const cleanPhone = storeConfig.phoneWhatsApp.replace(/[^0-9]/g, "");
+                    const msg = encodeURIComponent(
+                      `Hola ${storeConfig.name}, acabo de realizar la transferencia por QR Simple para mi pedido *${createdQrOrder?.code || qrOrderRef}* por un total de *${storeConfig.currency} ${grandTotal.toFixed(2)}*. Quedo atento a la confirmación de cocina.`
+                    );
+                    window.open(`https://wa.me/${cleanPhone}?text=${msg}`, "_blank");
+                  }}
+                  className="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <MessageSquare className="w-4 h-4 text-emerald-600" />
+                  <span>Avisar al Local por WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsCheckoutOpen(false)}
+                  className="w-full py-2 text-neutral-500 hover:text-neutral-800 font-semibold text-xs cursor-pointer text-center"
+                >
+                  Volver al Menú
+                </button>
               </div>
-              <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-300">
-                ¡Comprobante de Abono Registrado!
-              </span>
-              <h3 className="text-2xl font-black text-neutral-900 tracking-tight">
-                Pedido de {storeConfig.currency} {grandTotal.toFixed(2)} Generado
-              </h3>
-              <p className="text-xs text-neutral-500 max-w-sm mx-auto">
-                La orden fue enviada con la glosa <strong className="font-mono text-neutral-800">{qrOrderRef}</strong>. El cajero cotejará el ingreso en su app bancaria. Redirigiendo a tu comprobante...
-              </p>
-              <div className="pt-3">
-                <Loader2 className="w-5 h-5 text-emerald-600 animate-spin mx-auto" />
-              </div>
-            </motion.div>
+            </div>
           )}
         </motion.div>
       </div>
