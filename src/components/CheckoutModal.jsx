@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useStore } from "../context/StoreContext";
 import DeliveryMapPicker from "./DeliveryMapPicker";
 import { 
@@ -61,6 +61,19 @@ export default function CheckoutModal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptedConsent, setAcceptedConsent] = useState(false);
 
+  // Bolivian Compliance (Invoicing & Alcohol Control)
+  const [requestInvoice, setRequestInvoice] = useState(false);
+  const [billingNit, setBillingNit] = useState("");
+  const [billingBusinessName, setBillingBusinessName] = useState("");
+  const [declaredOver18, setDeclaredOver18] = useState(false);
+
+  const hasAlcohol = useMemo(() => {
+    return cart.some((item) => 
+      (item.category && /vino|coctel|bebida con alcohol|licor/i.test(item.category)) ||
+      (item.name && /vino|coctel|gin|cerveza|whisky|ron|vodka|licor|fernet|negroni|spritz/i.test(item.name))
+    );
+  }, [cart]);
+
   const [checkoutStep, setCheckoutStep] = useState("form");
   const [qrOrderRef, setQrOrderRef] = useState("");
   const [qrSecondsLeft, setQrSecondsLeft] = useState(599);
@@ -115,6 +128,16 @@ export default function CheckoutModal() {
       return;
     }
 
+    if (hasAlcohol && !declaredOver18) {
+      toast.error("Debes certificar ser mayor de 18 años para pedidos con bebidas alcohólicas (Ley N° 259).");
+      return;
+    }
+
+    if (requestInvoice && (!billingNit.trim() || !billingBusinessName.trim())) {
+      toast.error("Por favor completa el NIT/CI y la Razón Social para la emisión de tu factura.");
+      return;
+    }
+
     try {
       if (formData.phone) localStorage.setItem("omnistore_saved_phone", formData.phone);
       if (formData.address) localStorage.setItem("omnistore_saved_address", formData.address);
@@ -139,6 +162,11 @@ export default function CheckoutModal() {
         paymentMethod: formData.paymentMethod,
         paymentStatus: "pendiente",
         notes: formData.notes,
+        billing: requestInvoice ? {
+          required: true,
+          nit: billingNit.trim(),
+          businessName: billingBusinessName.trim()
+        } : null,
       });
 
       setIsSubmitting(false);
@@ -146,7 +174,7 @@ export default function CheckoutModal() {
     }, 700);
   };
 
-  // Trigger automated payment detection
+  // Trigger QR payment registration
   const handleVerifyQrPayment = () => {
     setIsSimulatingBank(true);
 
@@ -165,11 +193,11 @@ export default function CheckoutModal() {
         console.log("Confetti", e);
       }
 
-      toast.success("¡Pago recibido y verificado por tu banco!", {
-        description: `Abono de ${storeConfig.currency} ${grandTotal.toFixed(2)} registrado sin comisiones.`
+      toast.success("¡Comprobante de abono registrado!", {
+        description: `El comercio confirmará el depósito de ${storeConfig.currency} ${grandTotal.toFixed(2)} en su app bancaria.`
       });
 
-      // Place order after brief celebration
+      // Place order after brief confirmation
       setTimeout(() => {
         placeOrder({
           customerName: formData.name,
@@ -178,13 +206,18 @@ export default function CheckoutModal() {
           deliveryCoords: isDelivery ? deliveryLocation : null,
           googleMapsUrl: isDelivery && deliveryLocation ? deliveryLocation.googleMapsUrl : null,
           orderType: formData.orderType,
-          paymentMethod: "QR Simple (Verificado Automáticamente)",
-          paymentStatus: "pagado",
+          paymentMethod: "QR Simple (Comprobante reportado)",
+          paymentStatus: "verificacion_pendiente",
           paidAt: new Date().toISOString(),
           notes: formData.notes,
+          billing: requestInvoice ? {
+            required: true,
+            nit: billingNit.trim(),
+            businessName: billingBusinessName.trim()
+          } : null,
         });
       }, 1400);
-    }, 1200);
+    }, 1000);
   };
 
   return (
@@ -410,6 +443,84 @@ export default function CheckoutModal() {
                     className="w-full px-3.5 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
                   />
                 </div>
+
+                {/* Step 4: Optional Invoicing (NIT / CI) */}
+                {storeConfig.billingEnabled !== false && (
+                  <div className="bg-neutral-50 rounded-2xl p-3.5 border border-neutral-200/80 space-y-3">
+                    <label className="flex items-center justify-between cursor-pointer select-none">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={requestInvoice}
+                          onChange={(e) => setRequestInvoice(e.target.checked)}
+                          className="w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 cursor-pointer"
+                        />
+                        <span className="text-xs font-bold text-neutral-800">
+                          ¿Deseas Factura con Crédito Fiscal?
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-neutral-500 font-medium">Opcional</span>
+                    </label>
+
+                    {requestInvoice && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-neutral-200/60"
+                      >
+                        <div>
+                          <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+                            NIT o C.I. del Titular *
+                          </label>
+                          <input
+                            type="text"
+                            required={requestInvoice}
+                            value={billingNit}
+                            onChange={(e) => setBillingNit(e.target.value)}
+                            placeholder="Ej. 1028475021 o 6789123"
+                            className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+                            Razón Social o Nombre Factura *
+                          </label>
+                          <input
+                            type="text"
+                            required={requestInvoice}
+                            value={billingBusinessName}
+                            onChange={(e) => setBillingBusinessName(e.target.value)}
+                            placeholder="Ej. Juan Pérez o Mi Empresa S.R.L."
+                            className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                )}
+
+                {/* Ley N° 259: Control de Expendio de Bebidas Alcohólicas */}
+                {hasAlcohol && (
+                  <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-3.5 space-y-2.5">
+                    <div className="flex items-start gap-2 text-amber-900">
+                      <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div className="text-[11px] leading-snug font-medium">
+                        <strong>Ley N° 259 (Bolivia):</strong> El consumo excesivo de alcohol es dañino para la salud. Venta prohibida estrictamente a menores de 18 años.
+                      </div>
+                    </div>
+                    <label className="flex items-start gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={declaredOver18}
+                        onChange={(e) => setDeclaredOver18(e.target.checked)}
+                        className="w-4 h-4 mt-0.5 rounded border-amber-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                      />
+                      <span className="text-[11.5px] text-amber-950 font-semibold leading-tight">
+                        Declaro bajo juramento ser mayor de 18 años para la recepción de bebidas alcohólicas.
+                      </span>
+                    </label>
+                  </div>
+                )}
 
                 {/* Summary Box */}
                 <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200/80 space-y-2 text-xs">
@@ -649,11 +760,11 @@ export default function CheckoutModal() {
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-600"></span>
                 </span>
                 <span className="leading-tight">
-                  Esperando confirmación bancaria en tiempo real... (Esta pantalla se actualizará sola)
+                  Escanea el código QR desde tu app bancaria con el monto exacto.
                 </span>
               </div>
 
-              {/* Live Testing Simulation Button */}
+              {/* Action Button */}
               <div className="space-y-2 pt-1">
                 <button
                   type="button"
@@ -664,17 +775,17 @@ export default function CheckoutModal() {
                   {isSimulatingBank ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      <span>Verificando abono con el banco...</span>
+                      <span>Registrando comprobante de transferencia...</span>
                     </>
                   ) : (
                     <>
                       <CheckCircle2 className="w-4 h-4 text-emerald-200" />
-                      <span>🧪 Probar Verificación Automática (Simular Abono Recibido)</span>
+                      <span>Ya realicé la transferencia QR (Registrar Pedido)</span>
                     </>
                   )}
                 </button>
                 <p className="text-[10px] text-center text-neutral-400">
-                  En producción, este paso ocurre automáticamente en 2 a 3 segundos cuando el cliente confirma en su banca móvil.
+                  Tu orden ingresará directamente al panel de cocina y el cajero confirmará el depósito en su app bancaria.
                 </p>
               </div>
             </div>
@@ -691,13 +802,13 @@ export default function CheckoutModal() {
                 <Check className="w-10 h-10 stroke-[3]" />
               </div>
               <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-300">
-                ¡Transferencia Bancaria Confirmada!
+                ¡Comprobante de Abono Registrado!
               </span>
               <h3 className="text-2xl font-black text-neutral-900 tracking-tight">
-                Pago de {storeConfig.currency} {grandTotal.toFixed(2)} Acreditado
+                Pedido de {storeConfig.currency} {grandTotal.toFixed(2)} Generado
               </h3>
               <p className="text-xs text-neutral-500 max-w-sm mx-auto">
-                El banco confirmó el ingreso a tu cuenta con la glosa <strong className="font-mono text-neutral-800">{qrOrderRef}</strong>. Generando tu orden al instante...
+                La orden fue enviada con la glosa <strong className="font-mono text-neutral-800">{qrOrderRef}</strong>. El cajero cotejará el ingreso en su app bancaria. Redirigiendo a tu comprobante...
               </p>
               <div className="pt-3">
                 <Loader2 className="w-5 h-5 text-emerald-600 animate-spin mx-auto" />

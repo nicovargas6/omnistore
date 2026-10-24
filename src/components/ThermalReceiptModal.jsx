@@ -13,80 +13,7 @@ export default function ThermalReceiptModal() {
   const order = receiptOrder;
 
   const handlePrint = () => {
-    const printElement = document.getElementById("thermal-receipt-print-area");
-    if (!printElement) {
-      window.print();
-      return;
-    }
-
-    // Create an isolated printing iframe to bypass modal CSS transforms and prevent blank prints
-    const iframe = document.createElement("iframe");
-    iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "0";
-    document.body.appendChild(iframe);
-
-    const doc = iframe.contentWindow.document;
-    doc.open();
-    doc.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Comanda_${order.code}</title>
-          <style>
-            @page {
-              size: 80mm auto;
-              margin: 0;
-            }
-            body {
-              margin: 0;
-              padding: 4mm 3mm;
-              font-family: 'Courier New', Courier, monospace;
-              font-size: 11px;
-              line-height: 1.25;
-              color: #000;
-              background: #fff;
-              width: 74mm;
-            }
-            * { box-sizing: border-box; }
-            .border-b-2 { border-bottom: 2px dashed #000; padding-bottom: 6px; margin-bottom: 6px; }
-            .border-b { border-bottom: 1px dashed #555; padding-bottom: 4px; margin-bottom: 4px; }
-            .border-dashed { border-style: dashed; }
-            .flex { display: flex; justify-content: space-between; }
-            .text-center { text-align: center; }
-            .font-bold { font-weight: bold; }
-            .font-black { font-weight: 900; }
-            .uppercase { text-transform: uppercase; }
-            .text-base { font-size: 14px; }
-            .text-sm { font-size: 12px; }
-            .text-xs { font-size: 10px; }
-            .truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .pl-4 { padding-left: 12px; }
-            .pt-1 { padding-top: 4px; }
-            .space-y-1 > * + * { margin-top: 4px; }
-            .space-y-2 > * + * { margin-top: 8px; }
-            .space-y-3 > * + * { margin-top: 12px; }
-          </style>
-        </head>
-        <body>
-          ${printElement.innerHTML}
-        </body>
-      </html>
-    `);
-    doc.close();
-
-    setTimeout(() => {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-      setTimeout(() => {
-        try {
-          document.body.removeChild(iframe);
-        } catch (e) {}
-      }, 1500);
-    }, 250);
+    window.print();
   };
 
   const handleCopyText = () => {
@@ -183,7 +110,12 @@ export default function ThermalReceiptModal() {
               <div className="text-[11px] text-neutral-600">
                 WhatsApp: {storeConfig.phoneWhatsApp}
               </div>
-              <div className="text-[10px] text-neutral-500 pt-1">
+              {storeConfig.taxId && (
+                <div className="text-[10px] text-neutral-600 font-bold">
+                  {storeConfig.legalName || storeConfig.name} • {storeConfig.taxId}
+                </div>
+              )}
+              <div className="text-[10px] text-neutral-500 pt-0.5">
                 {storeConfig.badge}
               </div>
             </div>
@@ -194,6 +126,13 @@ export default function ThermalReceiptModal() {
                 <span>TICKET / COMANDA:</span>
                 <span>{order.code}</span>
               </div>
+              {order.billing?.required && (
+                <div className="p-1.5 bg-neutral-100 rounded border border-neutral-300 space-y-0.5 text-[10px] my-1 text-left">
+                  <div className="font-bold">DATOS FACTURA:</div>
+                  <div>NIT/CI: <strong>{order.billing.nit}</strong></div>
+                  <div>RAZÓN SOCIAL: <strong>{order.billing.businessName}</strong></div>
+                </div>
+              )}
               <div className="flex justify-between text-neutral-600">
                 <span>FECHA:</span>
                 <span>

@@ -796,8 +796,11 @@ REGLAS ESTRICTAS DE RESPUESTA EN WHATSAPP:
                 </button>
               </div>
               <p className="text-[10.5px] text-neutral-300 leading-relaxed">
-                Ingresa una API Key gratuita de Google AI Studio para activar razonamiento semántico libre y responder cualquier pregunta en lenguaje natural. Si está vacía o sin red, opera el motor local optimizado.
+                Ingresa una API Key gratuita de Google AI Studio para activar razonamiento semántico libre. Si está vacía, opera el motor local de ventas optimizado y seguro sin costo ni consumo de cuotas.
               </p>
+              <div className="bg-amber-950/60 border border-amber-500/30 rounded-lg p-2 text-[10px] text-amber-200">
+                🔒 <strong>Aviso de seguridad para demos:</strong> Tu clave se conserva exclusivamente en el almacenamiento local de este dispositivo. Para despliegues comerciales finales, el motor local garantiza cero costo y máxima privacidad.
+              </div>
               <div className="flex items-center gap-1.5">
                 <input
                   type="password"

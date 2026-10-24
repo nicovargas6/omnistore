@@ -133,10 +133,16 @@ export const TermsOfServiceView: React.FC<TermsOfServiceViewProps> = ({ onBack }
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-neutral-900 flex items-center gap-2 border-b border-neutral-100 pb-2">
               <span className="w-6 h-6 rounded-lg bg-neutral-900 text-white text-xs flex items-center justify-center font-mono">6</span>
-              <span>Protección al Consumidor y Canales de Atención</span>
+              <span>Protección al Consumidor (Ley N° 453) y Control de Alcohol (Ley N° 259)</span>
             </h2>
             <p>
-              El Comercio respeta plenamente las normas de defensa del consumidor y dispone del canal de WhatsApp <strong>{storeConfig.phoneWhatsApp}</strong> y atención presencial en <strong>{storeConfig.address}</strong> para resolución ágil y directa de cualquier inquietud.
+              El Comercio operado formalmente por <strong>{storeConfig.legalName || storeConfig.name}</strong> ({storeConfig.taxId || "NIT Registrado"}) cumple rigurosamente con la <strong>Ley General de los Derechos de las Usuarias y los Usuarios y de las Consumidoras y los Consumidores (Ley N° 453)</strong> del Estado Plurinacional de Bolivia.
+            </p>
+            <p>
+              En estricto apego a la <strong>Ley N° 259 (Control al Expendio y Consumo de Bebidas Alcohólicas)</strong>, queda terminantemente prohibida la venta, despacho o entrega de bebidas con graduación alcohólica a menores de 18 años. El repartidor o personal de salón está legalmente facultado para requerir la Cédula de Identidad del receptor.
+            </p>
+            <p>
+              Para atención directa de quejas, reclamaciones o solicitudes de sustitución, el usuario dispone del canal oficial de WhatsApp <strong>{storeConfig.phoneWhatsApp}</strong> o de forma presencial en <strong>{storeConfig.address}</strong> con plazo de respuesta preferente.
             </p>
           </section>
         </div>

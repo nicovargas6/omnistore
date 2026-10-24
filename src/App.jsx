@@ -7,6 +7,7 @@ import OrderTrackingModal from "./components/OrderTrackingModal";
 import WhatsAppAiSimulatorModal from "./components/WhatsAppAiSimulatorModal";
 import LegalModal from "./components/Legal/LegalModal";
 import DataPrivacyCenterModal from "./components/Legal/DataPrivacyCenterModal";
+import AdminAuthModal from "./components/Admin/AdminAuthModal";
 import CookieBanner from "./components/Legal/CookieBanner";
 import PrivacyPolicyView from "./components/Legal/PrivacyPolicyView";
 import TermsOfServiceView from "./components/Legal/TermsOfServiceView";
@@ -42,6 +43,7 @@ function AppContent() {
         }}
       />
       {/* Global Modals for Modular Features */}
+      <AdminAuthModal />
       <ThermalReceiptModal />
       <OrderTrackingModal />
       <WhatsAppAiSimulatorModal />

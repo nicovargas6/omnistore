@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { InteractiveHoverButton } from "./ui/InteractiveHoverButton";
 
 export default function Hero({ onExploreClick }) {
-  const { storeConfig, setViewMode, setActiveAdminTab } = useStore();
+  const { storeConfig, enterAdminMode } = useStore();
 
   const handleWhatsAppClick = () => {
     const cleanPhone = storeConfig.phoneWhatsApp.replace(/[^0-9]/g, "");
@@ -80,10 +80,7 @@ export default function Hero({ onExploreClick }) {
           </div>
 
           <button
-            onClick={() => {
-              setViewMode("admin");
-              setActiveAdminTab("customizer");
-            }}
+            onClick={() => enterAdminMode("customizer")}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-neutral-300 hover:text-white bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-md transition cursor-pointer"
             title="Ir al personalizador visual en el Panel Admin"
           >

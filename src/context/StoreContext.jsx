@@ -64,6 +64,52 @@ export function StoreProvider({ children }) {
   const [legalDocType, setLegalDocType] = useState("privacy"); // 'privacy' | 'terms'
   const [isPrivacyCenterOpen, setIsPrivacyCenterOpen] = useState(false);
 
+  // Admin Security & PIN Authentication Gatekeeper
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    try {
+      return sessionStorage.getItem("omnistore_admin_auth") === "true";
+    } catch {
+      return false;
+    }
+  });
+  const [isAdminPinModalOpen, setIsAdminPinModalOpen] = useState(false);
+  const [pendingAdminTab, setPendingAdminTab] = useState("dashboard");
+
+  const enterAdminMode = (targetTab = "dashboard") => {
+    if (isAdminAuthenticated) {
+      if (targetTab) setActiveAdminTab(targetTab);
+      navigateTo("admin");
+    } else {
+      setPendingAdminTab(targetTab || "dashboard");
+      setIsAdminPinModalOpen(true);
+    }
+  };
+
+  const logoutAdmin = () => {
+    setIsAdminAuthenticated(false);
+    try {
+      sessionStorage.removeItem("omnistore_admin_auth");
+    } catch {}
+    toast.info("Sesión administrativa cerrada y bloqueada.");
+    navigateTo("storefront");
+  };
+
+  const authenticateAdmin = (pin) => {
+    const validPin = (storeConfig.adminPin || "1234").trim();
+    if (pin.trim() === validPin) {
+      setIsAdminAuthenticated(true);
+      try {
+        sessionStorage.setItem("omnistore_admin_auth", "true");
+      } catch {}
+      setIsAdminPinModalOpen(false);
+      setActiveAdminTab(pendingAdminTab || "dashboard");
+      navigateTo("admin");
+      toast.success("Acceso autorizado al Panel de Gestión");
+      return true;
+    }
+    return false;
+  };
+
   const openLegalDoc = (type = "privacy") => {
     setLegalDocType(type);
     setLegalModalOpen(true);
@@ -107,7 +153,17 @@ export function StoreProvider({ children }) {
       } else if (path === "/terminos" || hash === "#terminos") {
         setViewMode("terms");
       } else if (path === "/admin" || hash === "#admin") {
-        setViewMode("admin");
+        try {
+          const isAuth = sessionStorage.getItem("omnistore_admin_auth") === "true";
+          if (isAuth) {
+            setViewMode("admin");
+          } else {
+            setViewMode("storefront");
+            setIsAdminPinModalOpen(true);
+          }
+        } catch {
+          setViewMode("admin");
+        }
       } else if (path === "/" || path === "") {
         setViewMode("storefront");
       }
@@ -177,6 +233,10 @@ export function StoreProvider({ children }) {
           const cfg = parsed.storeConfig;
           if (cfg.currency === "$" || !cfg.currency) cfg.currency = "Bs ";
           if (cfg.deliveryCost === 2.5) cfg.deliveryCost = 15.0;
+          if (!cfg.adminPin) cfg.adminPin = "1234";
+          if (!cfg.taxId) cfg.taxId = "NIT 1028475021";
+          if (!cfg.legalName) cfg.legalName = "Aura Bistró & Cantina S.R.L.";
+          if (cfg.billingEnabled === undefined) cfg.billingEnabled = true;
           activeCurr = cfg.currency;
           setStoreConfig(cfg);
         }
@@ -613,6 +673,12 @@ export function StoreProvider({ children }) {
     toast.success(`Estado del pedido actualizado a: ${newStatus.toUpperCase()}`);
   };
 
+  const updateOrderPaymentStatus = (orderId, newPaymentStatus) => {
+    setOrders((prev) =>
+      prev.map((ord) => (ord.id === orderId ? { ...ord, paymentStatus: newPaymentStatus } : ord))
+    );
+  };
+
   const deleteOrder = (orderId) => {
     setOrders((prev) => prev.filter((ord) => ord.id !== orderId));
     toast.info("Pedido archivado/eliminado.");
@@ -662,6 +728,7 @@ export function StoreProvider({ children }) {
         orders,
         placeOrder,
         updateOrderStatus,
+        updateOrderPaymentStatus,
         deleteOrder,
         viewMode,
         setViewMode,
@@ -717,6 +784,13 @@ export function StoreProvider({ children }) {
         isPrivacyCenterOpen,
         openPrivacyCenter,
         closePrivacyCenter,
+        // Admin Security & Gatekeeper
+        isAdminAuthenticated,
+        isAdminPinModalOpen,
+        setIsAdminPinModalOpen,
+        enterAdminMode,
+        logoutAdmin,
+        authenticateAdmin,
         navigateTo,
       }}
     >

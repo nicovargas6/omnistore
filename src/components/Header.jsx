@@ -11,7 +11,8 @@ import {
   Sparkles,
   LayoutDashboard,
   Clock,
-  ShieldCheck
+  ShieldCheck,
+  Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -28,6 +29,9 @@ export default function Header() {
     openTracking,
     isStoreOpen,
     openPrivacyCenter,
+    enterAdminMode,
+    logoutAdmin,
+    isAdminAuthenticated,
   } = useStore();
 
   const [isPresetDropdownOpen, setIsPresetDropdownOpen] = useState(false);
@@ -191,7 +195,7 @@ export default function Header() {
               <span className="hidden sm:inline">Tienda</span>
             </button>
             <button
-              onClick={() => setViewMode("admin")}
+              onClick={() => enterAdminMode("dashboard")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer ${
                 viewMode === "admin"
                   ? "bg-neutral-900 text-white shadow-sm"
@@ -202,6 +206,17 @@ export default function Header() {
               <span className="hidden sm:inline">Admin</span>
               <span className="w-2 h-2 rounded-full bg-amber-400"></span>
             </button>
+
+            {viewMode === "admin" && (
+              <button
+                onClick={logoutAdmin}
+                className="ml-1 flex items-center gap-1 px-2 py-1.5 rounded-lg text-neutral-400 hover:text-rose-400 hover:bg-neutral-800 transition cursor-pointer"
+                title="Cerrar y bloquear sesión administrativa"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span className="hidden md:inline text-[11px]">Bloquear</span>
+              </button>
+            )}
           </div>
 
           {/* Cart Trigger */}

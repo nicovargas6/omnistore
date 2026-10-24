@@ -25,6 +25,7 @@ export default function OrderManager() {
   const { 
     orders, 
     updateOrderStatus, 
+    updateOrderPaymentStatus,
     deleteOrder, 
     storeConfig,
     features,
@@ -262,10 +263,37 @@ export default function OrderManager() {
                         <strong>Pago:</strong> {order.paymentMethod}
                         {order.paymentStatus === "pagado" && (
                           <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-300">
-                            ✅ Acreditado Automáticamente
+                            ✅ Pagado
                           </span>
                         )}
+                        {order.paymentStatus === "verificacion_pendiente" && (
+                          <div className="flex items-center gap-1.5 my-1">
+                            <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full border border-amber-300">
+                              ⚠️ Abono reportado por cliente
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateOrderPaymentStatus(order.id, "pagado");
+                                toast.success(`¡Pago de orden ${order.code} confirmado en banco!`);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] shadow-xs cursor-pointer transition"
+                            >
+                              ✓ Confirmar Abono Bancario
+                            </button>
+                          </div>
+                        )}
                       </div>
+
+                      {order.billing?.required && (
+                        <div className="bg-blue-50 border border-blue-200 p-2.5 rounded-xl text-blue-950 mt-1 space-y-0.5">
+                          <div className="font-bold text-[10px] uppercase text-blue-800 flex items-center gap-1">
+                            <span>📄 Requiere Factura Oficial</span>
+                          </div>
+                          <div><strong>Razón Social:</strong> {order.billing.businessName}</div>
+                          <div><strong>NIT / CI:</strong> <span className="font-mono font-bold">{order.billing.nit}</span></div>
+                        </div>
+                      )}
                       {order.googleMapsUrl && (
                         <div className="pt-2 flex flex-wrap items-center gap-1.5">
                           <a

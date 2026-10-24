@@ -36,7 +36,8 @@ export default function StorefrontView() {
     setIsAiSimulatorOpen,
     openLegalDoc,
     openPrivacyCenter,
-    navigateTo
+    navigateTo,
+    enterAdminMode
   } = useStore();
 
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -189,9 +190,16 @@ export default function StorefrontView() {
             <p className="text-neutral-500 text-xs leading-relaxed">
               {storeConfig.tagline}
             </p>
-            <div className="pt-1 text-[11px] text-neutral-400 space-y-1">
+            <div className="pt-1 text-[11px] text-neutral-500 space-y-1">
               <div>📍 {storeConfig.address}</div>
               <div>📱 WhatsApp: {storeConfig.phoneWhatsApp}</div>
+              {storeConfig.taxId && (
+                <div className="text-[10px] text-neutral-400 pt-1 border-t border-neutral-100">
+                  <span>Razón Social: <strong>{storeConfig.legalName || storeConfig.name}</strong></span>
+                  <br />
+                  <span>{storeConfig.taxId} • Cochabamba, Bolivia</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -253,8 +261,19 @@ export default function StorefrontView() {
                   <span>• Centro de Privacidad (Derecho al Olvido)</span>
                 </button>
               </li>
+              <li>
+                <button
+                  onClick={() => {
+                    const clean = storeConfig.phoneWhatsApp.replace(/[^0-9]/g, "");
+                    window.open(`https://wa.me/${clean}?text=${encodeURIComponent("Hola, deseo registrar una queja/reclamación formal según Ley 453 (Defensa del Consumidor).")}`, "_blank");
+                  }}
+                  className="hover:text-neutral-900 hover:underline transition cursor-pointer flex items-center gap-1 text-left text-[11px] text-neutral-500"
+                >
+                  <span>• Libro de Reclamaciones ODECO (Ley 453)</span>
+                </button>
+              </li>
               <li className="text-[11px] text-neutral-400 pt-1 leading-snug">
-                Protección de datos conforme a ley. Cobro seguro con QR Simple (0% comisiones).
+                Cumplimiento Ley 453 de Defensa del Consumidor. Cobro seguro con QR Simple (0% comisiones).
               </li>
             </ul>
           </div>
@@ -268,10 +287,7 @@ export default function StorefrontView() {
               Accede al panel central para gestionar comandas, inventario y métricas en vivo.
             </p>
             <button
-              onClick={() => {
-                setViewMode("admin");
-                setActiveAdminTab("dashboard");
-              }}
+              onClick={() => enterAdminMode("dashboard")}
               className="w-full flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white py-2.5 px-4 rounded-xl font-bold text-xs shadow-xs transition cursor-pointer"
             >
               <LayoutDashboard className="w-3.5 h-3.5" />

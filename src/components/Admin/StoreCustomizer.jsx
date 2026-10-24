@@ -44,6 +44,10 @@ export default function StoreCustomizer() {
 
   const [formData, setFormData] = useState({
     name: storeConfig.name,
+    legalName: storeConfig.legalName || "Aura Bistró & Cantina S.R.L.",
+    taxId: storeConfig.taxId || "NIT 1028475021",
+    adminPin: storeConfig.adminPin || "1234",
+    billingEnabled: storeConfig.billingEnabled !== undefined ? storeConfig.billingEnabled : true,
     tagline: storeConfig.tagline,
     heroBadge: storeConfig.heroBadge || "",
     logoUrl: storeConfig.logoUrl,
@@ -91,6 +95,10 @@ export default function StoreCustomizer() {
     const p = BUSINESS_PRESETS[presetKey];
     setFormData({
       name: p.name,
+      legalName: p.legalName || p.name,
+      taxId: p.taxId || "NIT 1028475021",
+      adminPin: p.adminPin || "1234",
+      billingEnabled: p.billingEnabled !== undefined ? p.billingEnabled : true,
       tagline: p.tagline,
       heroBadge: p.heroBadge || "",
       logoUrl: p.logoUrl,
@@ -801,6 +809,87 @@ export default function StoreCustomizer() {
                 <option value="closed">🔴 Forzar Cerrado por Hoy</option>
               </select>
             </div>
+          </div>
+        </div>
+
+        {/* 6. Legal & Tax Settings (Bolivia Compliance) */}
+        <div className="pt-4 border-t border-neutral-100 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold text-neutral-800 uppercase tracking-wider flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>6. Seguridad y Datos Fiscales (Compliance Bolivia)</span>
+            </h3>
+            <span className="text-[11px] font-semibold text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-full">
+              Protección y Facturación
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
+                PIN de Acceso al Panel Admin *
+              </label>
+              <input
+                type="text"
+                maxLength={8}
+                value={formData.adminPin || "1234"}
+                onChange={(e) => setFormData({ ...formData, adminPin: e.target.value })}
+                placeholder="Ej. 1234"
+                className="w-full px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white"
+              />
+              <span className="text-[10px] text-neutral-400 mt-0.5 block">Protege los pedidos de miradas de clientes</span>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
+                Razón Social Oficial (Titular)
+              </label>
+              <input
+                type="text"
+                value={formData.legalName || ""}
+                onChange={(e) => setFormData({ ...formData, legalName: e.target.value })}
+                placeholder="Ej. Inversiones Gastronómicas S.R.L."
+                className="w-full px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
+                NIT / Identificación Tributaria
+              </label>
+              <input
+                type="text"
+                value={formData.taxId || ""}
+                onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
+                placeholder="Ej. NIT 1028475021"
+                className="w-full px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white font-mono"
+              />
+            </div>
+          </div>
+
+          {/* Billing Switch for the business */}
+          <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-3 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-bold text-neutral-800">
+                Habilitar Solicitud de Factura en el Checkout
+              </div>
+              <div className="text-[11px] text-neutral-500">
+                Permite a los clientes solicitar factura ingresando su NIT/CI y Razón Social al hacer el pedido.
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, billingEnabled: !formData.billingEnabled })}
+              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
+                formData.billingEnabled ? "bg-emerald-600" : "bg-neutral-300"
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform absolute top-0.5 ${
+                  formData.billingEnabled ? "left-6.5" : "left-0.5"
+                }`}
+              />
+            </button>
           </div>
         </div>
 
