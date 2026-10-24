@@ -43,6 +43,7 @@ export function StoreProvider({ children }) {
   const [activeAdminTab, setActiveAdminTab] = useState("dashboard"); // 'dashboard' | 'products' | 'orders' | 'categories' | 'customizer'
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProductForDetail, setSelectedProductForDetail] = useState(null);
+  const [selectedProductForPerspective, setSelectedProductForPerspective] = useState(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [completedOrder, setCompletedOrder] = useState(null);
 
@@ -753,6 +754,10 @@ export function StoreProvider({ children }) {
         setIsCartOpen,
         selectedProductForDetail,
         setSelectedProductForDetail,
+        selectedProductForPerspective,
+        setSelectedProductForPerspective,
+        openProductPerspective: (prod) => setSelectedProductForPerspective(prod),
+        closeProductPerspective: () => setSelectedProductForPerspective(null),
         isCheckoutOpen,
         setIsCheckoutOpen,
         completedOrder,

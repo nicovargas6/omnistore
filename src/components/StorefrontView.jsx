@@ -5,6 +5,7 @@ import Hero from "./Hero";
 import CategoryFilterBar from "./CategoryFilterBar";
 import ProductCard from "./ProductCard";
 import ProductDetailModal from "./ProductDetailModal";
+import ProductPerspectiveModal from "./ProductPerspectiveModal";
 import CartDrawer from "./CartDrawer";
 import CheckoutModal from "./CheckoutModal";
 import OrderSuccessModal from "./OrderSuccessModal";
@@ -39,7 +40,12 @@ export default function StorefrontView() {
     openPrivacyCenter,
     navigateTo,
     enterAdminMode,
-    isAdminAuthenticated
+    isAdminAuthenticated,
+    isCartOpen,
+    selectedProductForDetail,
+    selectedProductForPerspective,
+    isCheckoutOpen,
+    isAdminPinModalOpen
   } = useStore();
 
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -112,7 +118,7 @@ export default function StorefrontView() {
       <Header />
 
       {/* Main Body */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-3.5 sm:px-6 py-4 sm:py-8 w-full pb-28 sm:pb-16">
         {/* Hero Section */}
         <Hero onExploreClick={scrollToCatalog} />
 
@@ -341,47 +347,66 @@ export default function StorefrontView() {
 
       {/* Floating Minimalist WhatsApp AI Assistant Button */}
       <AnimatePresence>
-        {features.whatsappAiAgent && (
+        {features.whatsappAiAgent && !isCartOpen && !selectedProductForDetail && !selectedProductForPerspective && !isCheckoutOpen && !isAdminPinModalOpen && (
           <motion.div
             initial={{ scale: 0, opacity: 0, y: 16 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0, opacity: 0, y: 16 }}
             transition={{ type: "spring", stiffness: 320, damping: 24 }}
-            className="fixed bottom-6 right-5 sm:bottom-7 sm:right-7 z-40"
+            className="fixed bottom-5 right-4 sm:bottom-7 sm:right-7 z-30"
           >
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.94 }}
-              onClick={() => setIsAiSimulatorOpen(true)}
-              className="group relative flex items-center gap-2.5 bg-neutral-900/95 hover:bg-neutral-900 text-white pl-3 pr-3.5 py-2 rounded-full shadow-lg hover:shadow-xl border border-neutral-700/80 backdrop-blur-md transition-all duration-200 cursor-pointer"
-              title={`Asistente Virtual IA de ${storeConfig.name}`}
-            >
-              {/* Subtle Ambient Pulse Ring */}
-              <span className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-emerald-500/25 to-teal-500/25 opacity-70 blur-xs group-hover:opacity-100 transition duration-300 animate-pulse pointer-events-none" />
-
-              {/* Bot Icon with active presence dot */}
-              <div className="relative flex items-center justify-center flex-shrink-0">
-                <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
-                  <Bot className="w-4 h-4" />
-                </div>
-                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+            {/* Mobile: Compact 48px circular FAB - Leaves 85% of screen width completely clear */}
+            <div className="sm:hidden">
+              <motion.button
+                whileTap={{ scale: 0.90 }}
+                onClick={() => setIsAiSimulatorOpen(true)}
+                className="w-12 h-12 rounded-full bg-neutral-900/95 text-white flex items-center justify-center shadow-xl border border-neutral-700/80 backdrop-blur-md relative active:scale-95 cursor-pointer"
+                title={`Asistente Virtual IA de ${storeConfig.name}`}
+              >
+                <Bot className="w-5 h-5 text-emerald-400" />
+                <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 ring-2 ring-neutral-900" />
                 </span>
-              </div>
+              </motion.button>
+            </div>
 
-              {/* Typography: Clean, Minimalist & Compact */}
-              <div className="flex items-center gap-1.5 text-xs font-semibold tracking-tight">
-                <span className="text-neutral-100 font-medium">Asistente IA</span>
-                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider bg-emerald-950/90 px-1.5 py-0.5 rounded-md border border-emerald-500/30">
-                  En vivo
-                </span>
-              </div>
-            </motion.button>
+            {/* Desktop: Elegant full pill button */}
+            <div className="hidden sm:block">
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.94 }}
+                onClick={() => setIsAiSimulatorOpen(true)}
+                className="group relative flex items-center gap-2.5 bg-neutral-900/95 hover:bg-neutral-900 text-white pl-3 pr-3.5 py-2 rounded-full shadow-lg hover:shadow-xl border border-neutral-700/80 backdrop-blur-md transition-all duration-200 cursor-pointer"
+                title={`Asistente Virtual IA de ${storeConfig.name}`}
+              >
+                {/* Subtle Ambient Pulse Ring */}
+                <span className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-emerald-500/25 to-teal-500/25 opacity-70 blur-xs group-hover:opacity-100 transition duration-300 animate-pulse pointer-events-none" />
+
+                {/* Bot Icon with active presence dot */}
+                <div className="relative flex items-center justify-center flex-shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
+                    <Bot className="w-4 h-4" />
+                  </div>
+                  <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 ring-2 ring-neutral-900" />
+                  </span>
+                </div>
+
+                {/* Typography: Clean, Minimalist & Compact */}
+                <div className="flex items-center gap-1.5 text-xs font-semibold tracking-tight">
+                  <span className="text-neutral-100 font-medium">Asistente IA</span>
+                  <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider bg-emerald-950/90 px-1.5 py-0.5 rounded-md border border-emerald-500/30">
+                    En vivo
+                  </span>
+                </div>
+              </motion.button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Modals & Overlays */}
+      <ProductPerspectiveModal />
       <ProductDetailModal />
       <CartDrawer />
       <CheckoutModal />

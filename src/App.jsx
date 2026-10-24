@@ -28,7 +28,8 @@ function AppContent() {
   return (
     <>
       <Toaster 
-        position="top-right" 
+        position="bottom-center"
+        offset="80px" 
         richColors 
         closeButton 
         theme="light"
@@ -38,7 +39,8 @@ function AppContent() {
             border: "1px solid #e4e4e7",
             fontFamily: "var(--font-sans)",
             fontSize: "13px",
-            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.08)"
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.12)",
+            maxWidth: "92vw"
           }
         }}
       />

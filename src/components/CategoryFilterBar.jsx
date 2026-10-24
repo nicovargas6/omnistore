@@ -15,22 +15,22 @@ export default function CategoryFilterBar({
 }) {
   return (
     <div className="mb-6 space-y-4">
-      {/* Search and Sort row */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      {/* Search and Sort row - Compact and single-row responsive */}
+      <div className="flex items-center justify-between gap-2.5">
         {/* Search bar */}
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Buscar por nombre, ingrediente o código..."
-            className="w-full pl-10 pr-9 py-2.5 bg-white border border-neutral-200 rounded-xl text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent transition shadow-xs"
+            placeholder="Buscar por nombre, código..."
+            className="w-full pl-9 sm:pl-10 pr-8 sm:pr-9 py-2.5 bg-white border border-neutral-200 rounded-xl text-base sm:text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent transition shadow-xs"
           />
           {searchQuery && (
             <button
               onClick={() => onSearchChange("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 p-1"
             >
               <X className="w-4 h-4" />
             </button>
@@ -38,21 +38,20 @@ export default function CategoryFilterBar({
         </div>
 
         {/* Sort selector */}
-        <div className="flex items-center gap-2 self-end sm:self-auto">
-          <span className="text-xs text-neutral-500 font-medium hidden md:inline">Ordenar por:</span>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           <div className="relative">
             <select
               value={sortBy}
               onChange={(e) => onSortChange(e.target.value)}
-              className="appearance-none bg-white border border-neutral-200 text-neutral-800 text-xs font-semibold py-2.5 pl-3.5 pr-8 rounded-xl shadow-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 cursor-pointer"
+              className="appearance-none bg-white border border-neutral-200 text-neutral-800 text-xs font-semibold py-2.5 pl-3 pr-7 rounded-xl shadow-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 cursor-pointer"
             >
               <option value="featured">✨ Destacados</option>
-              <option value="price-asc">💵 Precio: Menor a Mayor</option>
-              <option value="price-desc">💎 Precio: Mayor a Menor</option>
-              <option value="name">🔤 Nombre Alfabético</option>
-              <option value="stock">📦 Mayor Disponibilidad</option>
+              <option value="price-asc">💵 Menor precio</option>
+              <option value="price-desc">💎 Mayor precio</option>
+              <option value="name">🔤 Alfabético</option>
+              <option value="stock">📦 En stock</option>
             </select>
-            <ArrowUpDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400 pointer-events-none" />
+            <ArrowUpDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400 pointer-events-none" />
           </div>
         </div>
       </div>

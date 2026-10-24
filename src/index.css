@@ -7,10 +7,20 @@
     --font-serif: 'Newsreader', Georgia, serif;
   }
 
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
   body {
     font-family: var(--font-sans);
     color: #18181b;
     background-color: #fbfbfb;
+    overscroll-behavior-y: none;
+  }
+
+  button, a, input, select, textarea {
+    touch-action: manipulation;
   }
 
   h1, h2, h3, h4, h5, h6 {

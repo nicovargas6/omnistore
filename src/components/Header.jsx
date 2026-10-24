@@ -39,26 +39,27 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-neutral-200 transition-colors">
       {/* Top micro-bar with address, WhatsApp info, and quick preset pill */}
-      <div className="bg-neutral-900 text-neutral-300 text-xs py-1.5 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-3 text-xs font-medium">
-            <span className="flex items-center gap-1.5 text-neutral-300 hover:text-white transition">
+      <div className="bg-neutral-900 text-neutral-300 text-xs py-1 px-3 sm:px-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 text-xs font-medium min-w-0">
+            <span className="hidden sm:flex items-center gap-1.5 text-neutral-300 hover:text-white transition">
               <MapPin className="w-3.5 h-3.5 text-neutral-400" />
-              <span className="hidden sm:inline">{storeConfig.address}</span>
-              <span className="sm:hidden">Local activo</span>
+              <span>{storeConfig.address}</span>
             </span>
 
             {/* Live Store Status (Open / Closed) */}
-            <div className="flex items-center">
+            <div className="flex items-center flex-shrink-0">
               {isStoreOpen ? (
-                <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-300 bg-emerald-950/70 border border-emerald-500/40 px-2 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-300 bg-emerald-950/70 border border-emerald-500/40 px-2 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  <span>Abierto ahora ({storeConfig.businessHours?.openTime || "11:00"} - {storeConfig.businessHours?.closeTime || "23:00"})</span>
+                  <span className="hidden sm:inline">Abierto ahora ({storeConfig.businessHours?.openTime || "11:00"} - {storeConfig.businessHours?.closeTime || "23:00"})</span>
+                  <span className="sm:hidden">Abierto</span>
                 </span>
               ) : (
-                <span className="flex items-center gap-1.5 text-[10px] font-bold text-rose-300 bg-rose-950/70 border border-rose-500/40 px-2 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 text-[10px] font-bold text-rose-300 bg-rose-950/70 border border-rose-500/40 px-2 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-                  <span>Cerrado por ahora (Abre a las {storeConfig.businessHours?.openTime || "11:00"})</span>
+                  <span className="hidden sm:inline">Cerrado por ahora (Abre a las {storeConfig.businessHours?.openTime || "11:00"})</span>
+                  <span className="sm:hidden">Cerrado (11:00)</span>
                 </span>
               )}
             </div>
@@ -69,7 +70,7 @@ export default function Header() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
             {/* Privacy & My Data Center */}
             <button
               onClick={openPrivacyCenter}

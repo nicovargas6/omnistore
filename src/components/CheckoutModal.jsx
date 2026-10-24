@@ -85,6 +85,7 @@ export default function CheckoutModal() {
 
   useEffect(() => {
     if (isCheckoutOpen) {
+      toast.dismiss();
       setCheckoutStep("form");
       setIsSubmitting(false);
       setIsSimulatingBank(false);
@@ -213,7 +214,7 @@ export default function CheckoutModal() {
           onClick={() => {
             if (checkoutStep !== "qr_success") setIsCheckoutOpen(false);
           }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+          className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity"
         />
 
         {/* Modal Window */}
@@ -221,13 +222,13 @@ export default function CheckoutModal() {
           initial={{ opacity: 0, scale: 0.96, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 10 }}
-          className="relative bg-white w-full max-w-2xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden z-10 border border-neutral-200 flex flex-col max-h-[92vh]"
+          className="relative bg-white w-full max-w-2xl sm:rounded-3xl shadow-2xl overflow-hidden z-10 border border-neutral-200 flex flex-col h-[100dvh] sm:h-auto sm:max-h-[92vh]"
         >
           {/* VIEW 1: Standard Checkout Form */}
           {checkoutStep === "form" && (
             <>
               {/* Header */}
-              <div className="p-5 sm:p-6 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
+              <div className="p-4 sm:p-6 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
                     Finalizar Compra
@@ -238,9 +239,9 @@ export default function CheckoutModal() {
                 </div>
                 <button
                   onClick={() => setIsCheckoutOpen(false)}
-                  className="w-8 h-8 rounded-full bg-white hover:bg-neutral-100 flex items-center justify-center text-neutral-600 transition cursor-pointer border border-neutral-200 shadow-2xs"
+                  className="w-10 h-10 rounded-full bg-white hover:bg-neutral-100 flex items-center justify-center text-neutral-700 hover:text-neutral-950 transition cursor-pointer border border-neutral-200 shadow-sm active:scale-95"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
@@ -276,7 +277,7 @@ export default function CheckoutModal() {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         placeholder="Ej. Juan Pérez"
-                        className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
+                        className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
                       />
                     </div>
                     <div>
@@ -289,7 +290,7 @@ export default function CheckoutModal() {
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         placeholder="Ej. +591 71234567"
-                        className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
+                        className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
                       />
                     </div>
                   </div>
@@ -339,7 +340,7 @@ export default function CheckoutModal() {
                             value={formData.address}
                             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                             placeholder="Ej. Av. Ballivián 1240, Edif. Los Pinos"
-                            className="w-full pl-9 pr-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
+                            className="w-full pl-9 pr-3.5 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition"
                           />
                         </div>
                       </div>

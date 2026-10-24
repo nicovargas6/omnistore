@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useStore } from "../context/StoreContext";
+import { toast } from "sonner";
 import { 
   X, 
   Trash2, 
@@ -36,6 +37,13 @@ export default function CartDrawer() {
   const [couponInput, setCouponInput] = useState("");
   const [showCouponInput, setShowCouponInput] = useState(false);
 
+  // Clear any active toasts when drawer opens so they don't block the header or close button
+  useEffect(() => {
+    if (isCartOpen) {
+      toast.dismiss();
+    }
+  }, [isCartOpen]);
+
   if (!isCartOpen) return null;
 
   const handleStartCheckout = () => {
@@ -65,13 +73,13 @@ export default function CartDrawer() {
         />
 
         {/* Drawer container */}
-        <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+        <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-10">
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 280 }}
-            className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between border-l border-neutral-200"
+            className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between border-l border-neutral-200 h-[100dvh]"
           >
             {/* Drawer Header */}
             <div className="p-5 border-b border-neutral-100 flex items-center justify-between">
@@ -199,7 +207,7 @@ export default function CartDrawer() {
 
             {/* Drawer Footer & Checkout Action */}
             {cart.length > 0 && (
-              <div className="p-5 border-t border-neutral-100 bg-neutral-50/50 space-y-4">
+              <div className="p-4 sm:p-5 border-t border-neutral-100 bg-neutral-50/70 space-y-3 pb-[calc(1.2rem+env(safe-area-inset-bottom,0px))]">
                 {/* Optional Feature: Coupons Block */}
                 {features.coupons && (
                   <div className="pt-1 pb-2 border-b border-neutral-200/60">
