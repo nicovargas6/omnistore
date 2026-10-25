@@ -57,6 +57,7 @@ export default function StorefrontView() {
 
   // Trigger fluid skeleton animation when preset or model changes
   useEffect(() => {
+    setSelectedCategory("all");
     setIsCatalogLoading(true);
     const timer = setTimeout(() => {
       setIsCatalogLoading(false);
@@ -112,32 +113,72 @@ export default function StorefrontView() {
     }
   }, [products, selectedCategory, searchQuery, sortBy]);
 
+  // Theme-specific styling variables
+  const isFashion = activePresetKey === "fashion";
+  const isFood = activePresetKey === "restaurant";
+
+  const containerThemeClass = isFashion
+    ? "bg-[#f4f3f0]"
+    : isFood
+    ? "bg-[#faf8f5]"
+    : "bg-neutral-50/60";
+
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-50/60 selection:bg-neutral-900 selection:text-white">
+    <div className={`min-h-screen flex flex-col ${containerThemeClass} selection:bg-neutral-900 selection:text-white transition-colors duration-300 overflow-x-hidden`}>
       {/* Main Header */}
       <Header />
 
       {/* Main Body */}
-      <main className="flex-1 max-w-7xl mx-auto px-3.5 sm:px-6 py-4 sm:py-8 w-full pb-28 sm:pb-16">
-        {/* Hero Section */}
-        <Hero onExploreClick={scrollToCatalog} />
+      <main className="flex-1 max-w-7xl mx-auto px-3.5 sm:px-6 py-4 sm:py-8 w-full pb-28 sm:pb-16 overflow-x-hidden">
+        {/* Themed Animated Hero Section */}
+        <Hero onExploreClick={scrollToCatalog} onSelectCategory={handleSelectCategory} />
 
         {/* Catalog Section Anchor */}
         <div ref={catalogRef} className="pt-2">
-          {/* Section Title */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-4 gap-2">
+          {/* Section Title with Theme-specific Editorial Treatment */}
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.4 }}
+            className="flex flex-col sm:flex-row sm:items-end justify-between mb-4 gap-2"
+          >
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">
-                Catálogo Disponible
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-                {selectedCategory === "all" ? "Todos los Productos" : selectedCategory}
-              </h2>
+              {isFashion ? (
+                <div>
+                  <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-neutral-500 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-900" />
+                    [ FW26 ARCHIVE // PIEZAS DISPONIBLES ]
+                  </span>
+                  <h2 className="text-2xl sm:text-4xl font-extrabold text-neutral-950 uppercase tracking-tight font-['Outfit'] mt-1">
+                    {selectedCategory === "all" ? "BEST OF GAZU // KULT" : selectedCategory}
+                  </h2>
+                </div>
+              ) : isFood ? (
+                <div>
+                  <span className="text-xs font-semibold tracking-wider text-amber-800 uppercase flex items-center gap-1.5">
+                    <span>🍴</span>
+                    <span>SELECCIÓN DEL CHEF & ALTA COCINA</span>
+                  </span>
+                  <h2 className="text-2xl sm:text-4xl font-normal text-stone-900 tracking-tight font-serif italic mt-1">
+                    {selectedCategory === "all" ? "Nuestra Carta de Especialidades" : selectedCategory}
+                  </h2>
+                </div>
+              ) : (
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                    Catálogo Disponible
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight font-['Outfit']">
+                    {selectedCategory === "all" ? "Todos los Productos" : selectedCategory}
+                  </h2>
+                </div>
+              )}
             </div>
             <span className="text-xs text-neutral-500 font-medium">
-              Mostrando {filteredProducts.length} de {products.length} artículos
+              Mostrando <strong className="text-neutral-900 font-bold">{filteredProducts.length}</strong> de {products.length} artículos
             </span>
-          </div>
+          </motion.div>
 
           {/* Filters, Search & Categories */}
           <CategoryFilterBar

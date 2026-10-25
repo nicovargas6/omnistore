@@ -1,129 +1,21 @@
 import React from "react";
 import { useStore } from "../context/StoreContext";
-import { ArrowDown, MessageCircle, ShieldCheck, Zap, Truck, Edit3, QrCode, Clock, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
-import { InteractiveHoverButton } from "./ui/InteractiveHoverButton";
+import FashionHero from "./FashionHero";
+import FoodHero from "./FoodHero";
+import DefaultHero from "./DefaultHero";
 
-export default function Hero({ onExploreClick }) {
-  const { storeConfig, enterAdminMode, isAdminAuthenticated } = useStore();
+export default function Hero({ onExploreClick, onSelectCategory }) {
+  const { activePresetKey, storeConfig } = useStore();
 
-  const handleWhatsAppClick = () => {
-    const cleanPhone = storeConfig.phoneWhatsApp.replace(/[^0-9]/g, "");
-    const msg = encodeURIComponent(`Hola ${storeConfig.name}, estuve viendo su catálogo en línea y me gustaría hacer una consulta.`);
-    window.open(`https://wa.me/${cleanPhone}?text=${msg}`, "_blank");
-  };
+  const presetId = activePresetKey || storeConfig?.id;
 
-  return (
-    <div className="relative mb-6 sm:mb-12 overflow-hidden rounded-2xl sm:rounded-3xl border border-neutral-200/80 shadow-md">
-      {/* Background image with subtle zoom & cinematic gradient */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src={storeConfig.bannerUrl}
-          alt={storeConfig.name}
-          className="w-full h-full object-cover object-center filter brightness-[0.70] contrast-[1.05]"
-          onError={(e) => {
-            e.target.src = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80";
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
-      </div>
+  if (presetId === "fashion") {
+    return <FashionHero onExploreClick={onExploreClick} onSelectCategory={onSelectCategory} />;
+  }
 
-      {/* Hero Content */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-10 py-8 sm:py-20 text-white flex flex-col items-center sm:items-start text-center sm:text-left">
-        {/* Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.1 }}
-          className="text-2xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight max-w-3xl leading-[1.18] mb-2 sm:mb-4 text-white drop-shadow-sm font-['Outfit']"
-        >
-          {storeConfig.name}
-        </motion.h1>
+  if (presetId === "restaurant") {
+    return <FoodHero onExploreClick={onExploreClick} onSelectCategory={onSelectCategory} />;
+  }
 
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.15 }}
-          className="text-xs sm:text-base lg:text-lg text-neutral-200 max-w-xl font-normal mb-5 sm:mb-8 leading-relaxed line-clamp-2 sm:line-clamp-none drop-shadow"
-        >
-          {storeConfig.tagline}
-        </motion.p>
-
-        {/* Action Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.2 }}
-          className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto"
-        >
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
-            <InteractiveHoverButton
-              onClick={onExploreClick}
-              icon={ArrowDown}
-              className="w-full sm:w-auto bg-white text-neutral-900 border-white/80 shadow-lg py-2.5 sm:py-3"
-              dotClassName="bg-neutral-900"
-              activeTextClassName="text-white"
-            >
-              Explorar Catálogo
-            </InteractiveHoverButton>
-
-            <InteractiveHoverButton
-              onClick={handleWhatsAppClick}
-              icon={MessageCircle}
-              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-400/40 py-2.5 sm:py-3"
-              dotClassName="bg-emerald-800"
-              activeTextClassName="text-white"
-            >
-              Consultar por WhatsApp
-            </InteractiveHoverButton>
-          </div>
-
-          {isAdminAuthenticated && (
-            <button
-              onClick={() => enterAdminMode("customizer")}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-neutral-300 hover:text-white bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-md transition cursor-pointer mt-1 sm:mt-0"
-              title="Ir al personalizador visual en el Panel Admin"
-            >
-              <Edit3 className="w-3.5 h-3.5 text-amber-300" />
-              <span>Personalizar portada</span>
-            </button>
-          )}
-        </motion.div>
-      </div>
-
-      {/* Feature Strip footer - Compact on mobile */}
-      <div className="relative z-10 border-t border-white/10 bg-black/40 backdrop-blur-md px-3 sm:px-6 py-2.5 sm:py-3">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-white text-[11px] sm:text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center flex-shrink-0 text-amber-400 border border-white/10">
-              <Truck className="w-3 h-3" />
-            </div>
-            <span className="font-medium text-neutral-200 truncate">Envío local o retiro</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center flex-shrink-0 text-emerald-400 border border-white/10">
-              <QrCode className="w-3 h-3" />
-            </div>
-            <span className="font-medium text-neutral-200 truncate">Pago con QR Simple</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center flex-shrink-0 text-cyan-400 border border-white/10">
-              <Zap className="w-3 h-3" />
-            </div>
-            <span className="font-medium text-neutral-200 truncate">Stock en tiempo real</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center flex-shrink-0 text-emerald-300 border border-white/10">
-              <MessageCircle className="w-3 h-3" />
-            </div>
-            <span className="font-medium text-neutral-200 truncate">Atención directa WhatsApp</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return <DefaultHero onExploreClick={onExploreClick} onSelectCategory={onSelectCategory} />;
 }

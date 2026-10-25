@@ -35,5 +35,7 @@ dist-ssr
 test-results/
 playwright-report/
 audit-screens/
+mobile-screens/
 *.png
+!public/*.png
 run-*.ps1

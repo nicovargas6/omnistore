@@ -314,6 +314,9 @@ export function StoreProvider({ children }) {
     setProducts(preset.products);
     setCart([]); // Clear cart when switching business models
     setAppliedCoupon(null);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
 
     toast.success(`Plantilla cambiada a: ${preset.name}`, {
       description: `Diseño, categorías y productos adaptados para ${preset.badge}.`,
