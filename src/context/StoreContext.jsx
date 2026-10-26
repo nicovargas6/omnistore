@@ -250,6 +250,18 @@ export function StoreProvider({ children }) {
           if (!cfg.taxId) cfg.taxId = "NIT 1028475021";
           if (!cfg.legalName) cfg.legalName = "Aura Bistró & Cantina S.R.L.";
           if (cfg.billingEnabled === undefined) cfg.billingEnabled = true;
+          if (
+            (cfg.id === "restaurant" || parsed.activePresetKey === "restaurant") &&
+            cfg.bannerUrl?.includes("photo-1517248135467-4c7edcad34c4")
+          ) {
+            cfg.bannerUrl = "/luscious-food-bowl.png";
+          }
+          if (
+            (cfg.id === "fashion" || parsed.activePresetKey === "fashion") &&
+            cfg.bannerUrl?.includes("photo-1490481651871-ab68de25d43d")
+          ) {
+            cfg.bannerUrl = "/gazu-hero-model.png";
+          }
           activeCurr = cfg.currency;
           setStoreConfig(cfg);
         }

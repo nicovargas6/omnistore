@@ -17,6 +17,11 @@ export default function FoodHero({ onExploreClick, onSelectCategory }) {
 
   // Signature dish offered by the restaurant ("Ojo de Bife Angus & Papas Trufadas")
   const signatureDish = products.find((p) => p.id === "rest-1") || products[0];
+  const heroDishImage =
+    storeConfig.bannerUrl &&
+    !storeConfig.bannerUrl.includes("photo-1517248135467-4c7edcad34c4")
+      ? storeConfig.bannerUrl
+      : "/luscious-food-bowl.png";
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -128,20 +133,6 @@ export default function FoodHero({ onExploreClick, onSelectCategory }) {
           2. MAIN HERO STAGE: SPANISH SERIF HEADLINE & RESTAURANT SIGNATURE DISH
          ===================================================================== */}
       <div className="relative z-20 max-w-7xl mx-auto px-5 sm:px-10 lg:px-14 pt-6 sm:pt-12 pb-10 sm:pb-14 grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-10">
-        
-        {/*Decorative Top-Right Fresh Cherry Tomatoes & Herbs Accent */}
-        <motion.div
-          animate={{ transform: ["translateY(-4px)", "translateY(4px)", "translateY(-4px)"] }}
-          transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-          aria-hidden="true"
-          className="hidden sm:block absolute top-4 right-8 lg:right-14 z-10 pointer-events-none select-none"
-        >
-          <img
-            src="https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=300&q=80"
-            alt="Tomates cherry frescos"
-            className="w-16 h-16 lg:w-20 lg:h-20 object-cover rounded-full shadow-md border-2 border-white"
-          />
-        </motion.div>
 
         {/* Left Column: Spanish Editorial Serif Typography + Vibrant Orange Pill CTA */}
         <div className="lg:col-span-6 text-left pt-2 sm:pt-6">
@@ -230,7 +221,7 @@ export default function FoodHero({ onExploreClick, onSelectCategory }) {
             <motion.img
               animate={{ transform: ["translateY(-4px)", "translateY(4px)", "translateY(-4px)"] }}
               transition={{ repeat: Infinity, duration: 5.5, ease: "easeInOut" }}
-              src="/luscious-food-bowl.png"
+              src={heroDishImage}
               alt={signatureDish ? signatureDish.name : "Ojo de Bife Angus & Papas Trufadas"}
               className="w-full h-auto object-contain drop-shadow-[0_22px_32px_rgba(28,25,23,0.16)] group-hover:scale-[1.02] transition-transform duration-500 select-none"
               onError={(e) => {

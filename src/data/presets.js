@@ -22,7 +22,7 @@ export const BUSINESS_PRESETS = {
     address: "Av. América #340, Cochabamba, Bolivia",
     deliveryCost: 15.00,
     logoUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=180&h=180&q=80",
-    bannerUrl: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80",
+    bannerUrl: "/luscious-food-bowl.png",
     categories: ["Entradas & Tapas", "Platos Fuertes", "Parrilla & Pastas", "Vinos & Cocteles", "Postres de Autor"],
     orderTypes: ["Mesa / En Salón", "Para Llevar (Take Away)", "Delivery a Domicilio"],
     products: [
@@ -136,7 +136,7 @@ export const BUSINESS_PRESETS = {
     address: "Showroom: Distrito de Diseño, Calle 48 #102",
     deliveryCost: 5.00,
     logoUrl: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=180&h=180&q=80",
-    bannerUrl: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1600&q=80",
+    bannerUrl: "/gazu-hero-model.png",
     categories: ["Nuevos Drops", "Oversized Tees", "Pantalones & Denim", "Hoodies & Jackets", "Accesorios"],
     orderTypes: ["Envío Estándar", "Envío Express (24h)", "Retiro en Showroom"],
     products: [
@@ -467,6 +467,7 @@ export const IMAGE_LIBRARY_PRESETS = [
   {
     category: "Gastronomía & Platos",
     images: [
+      { url: "/luscious-food-bowl.png", label: "Ojo de Bife & Papas (Portada Hero)" },
       { url: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80", label: "Carne a la parrilla con papas" },
       { url: "https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?auto=format&fit=crop&w=800&q=80", label: "Pasta / Risotto gourmet" },
       { url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80", label: "Hamburguesa artesanal brioche" },
@@ -480,6 +481,7 @@ export const IMAGE_LIBRARY_PRESETS = [
   {
     category: "Moda & Indumentaria",
     images: [
+      { url: "/gazu-hero-model.png", label: "Modelo Editorial (Portada Hero)" },
       { url: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80", label: "Remera blanca boxy fit" },
       { url: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80", label: "Hoodie negro minimalista" },
       { url: "https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=800&q=80", label: "Campera bomber urbana" },

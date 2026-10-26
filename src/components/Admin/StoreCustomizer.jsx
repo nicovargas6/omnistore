@@ -546,7 +546,7 @@ export default function StoreCustomizer() {
             </label>
             <div className="flex items-center gap-2">
               <input
-                type="url"
+                type="text"
                 value={formData.logoUrl}
                 onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
                 className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white"
@@ -575,16 +575,18 @@ export default function StoreCustomizer() {
             </label>
             <div className="flex items-center gap-2">
               <input
-                type="url"
+                type="text"
                 value={formData.bannerUrl}
                 onChange={(e) => setFormData({ ...formData, bannerUrl: e.target.value })}
                 className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white"
               />
-              <div className="w-14 h-10 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100 flex-shrink-0">
+              <div className="w-14 h-10 rounded-xl overflow-hidden border border-neutral-200 bg-[#ecebe6] flex-shrink-0 flex items-center justify-center p-0.5">
                 <img
                   src={formData.bannerUrl}
                   alt="Banner preview"
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full ${
+                    formData.bannerUrl?.endsWith(".png") ? "object-contain" : "object-cover"
+                  }`}
                 />
               </div>
             </div>

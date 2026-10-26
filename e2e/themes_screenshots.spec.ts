@@ -98,5 +98,24 @@ test.describe('Verification of Full-Bleed Themes, Category Pill & Admin Tabs', (
     await expect(page.getByText(/Personalización de la Empresa & Módulos/i)).toBeVisible();
     await page.waitForTimeout(400);
     await page.screenshot({ path: 'mobile-screens/24_admin_customizer_fixed.png', fullPage: false });
+
+    // Verify Food Hero Banner URL & preview in Customizer
+    const bannerInput = page.locator('input[value="/luscious-food-bowl.png"]');
+    await bannerInput.scrollIntoViewIfNeeded();
+    await expect(bannerInput).toBeVisible();
+    const assetsRow = bannerInput.locator('..').locator('..').locator('..');
+    await assetsRow.screenshot({ path: 'mobile-screens/25_admin_food_banner_preview.png' });
+
+    // Switch to Fashion preset inside Admin Customizer and verify /gazu-hero-model.png
+    const fashionPresetCard = page.locator('h4:has-text("KULT Studio")').first();
+    await fashionPresetCard.scrollIntoViewIfNeeded();
+    await fashionPresetCard.click();
+    await page.waitForTimeout(400);
+
+    const fashionBannerInput = page.locator('input[value="/gazu-hero-model.png"]');
+    await fashionBannerInput.scrollIntoViewIfNeeded();
+    await expect(fashionBannerInput).toBeVisible();
+    const fashionAssetsRow = fashionBannerInput.locator('..').locator('..').locator('..');
+    await fashionAssetsRow.screenshot({ path: 'mobile-screens/26_admin_fashion_banner_preview.png' });
   });
 });

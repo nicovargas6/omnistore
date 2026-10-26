@@ -23,6 +23,11 @@ export default function FashionHero({ onExploreClick, onSelectCategory }) {
 
   const brandWord = getBrandWord(storeConfig.name);
   const brandLetters = brandWord.split("");
+  const heroModelImage =
+    storeConfig.bannerUrl &&
+    !storeConfig.bannerUrl.includes("photo-1490481651871-ab68de25d43d")
+      ? storeConfig.bannerUrl
+      : "/gazu-hero-model.png";
 
   // Dynamic font size so any brand name length fits edge-to-edge behind the model
   const letterSizeClass =
@@ -157,7 +162,7 @@ export default function FashionHero({ onExploreClick, onSelectCategory }) {
               <motion.img
                 animate={{ transform: ["translateY(-3px)", "translateY(3px)", "translateY(-3px)"] }}
                 transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-                src="/gazu-hero-model.png"
+                src={heroModelImage}
                 alt={`${storeConfig.name} Editorial Model`}
                 className="h-[275px] sm:h-[440px] lg:h-[515px] w-auto object-contain filter contrast-[1.04] drop-shadow-[0_18px_28px_rgba(0,0,0,0.18)] select-none"
                 onError={(e) => {

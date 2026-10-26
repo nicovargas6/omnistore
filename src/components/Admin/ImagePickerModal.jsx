@@ -70,7 +70,7 @@ export default function ImagePickerModal({ isOpen, onClose, onSelectImage, curre
               </label>
               <div className="flex gap-2">
                 <input
-                  type="url"
+                  type="text"
                   value={customUrl}
                   onChange={(e) => {
                     setCustomUrl(e.target.value);
