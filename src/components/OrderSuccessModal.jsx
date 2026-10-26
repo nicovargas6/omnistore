@@ -23,6 +23,7 @@ export default function OrderSuccessModal() {
     storeConfig, 
     setViewMode, 
     setActiveAdminTab,
+    isAdminAuthenticated,
     features,
     openTracking,
     openReceipt 
@@ -49,19 +50,19 @@ export default function OrderSuccessModal() {
   const handleWhatsAppSend = () => {
     const cleanPhone = storeConfig.phoneWhatsApp.replace(/[^0-9]/g, "");
     
-    // Construct formatted order message
-    let message = `🛒 *NUEVO PEDIDO EN ${storeConfig.name.toUpperCase()}*\n`;
-    message += `📋 Código: *${completedOrder.code}*\n`;
+    // Construct auto-confirmed order message (NO receipt/comprobante requested)
+    let message = `⚡ *PEDIDO AUTOCONFIRMADO EN ${storeConfig.name.toUpperCase()}*\n`;
+    message += `📋 Orden: *${completedOrder.code}* (Confirmado automáticamente ✓)\n`;
     message += `👤 Cliente: ${completedOrder.customerName}\n`;
     message += `📞 Teléfono: ${completedOrder.customerPhone}\n`;
     message += `🚚 Modalidad: ${completedOrder.orderType}\n`;
-    message += `📍 Ubicación/Mesa: ${completedOrder.customerAddress}\n`;
+    message += `📍 Entrega: ${completedOrder.customerAddress}\n`;
     if (completedOrder.googleMapsUrl) {
-      message += `🗺️ *Ubicación GPS (Google Maps):* ${completedOrder.googleMapsUrl}\n`;
+      message += `🗺️ *Ubicación en Mapa:* ${completedOrder.googleMapsUrl}\n`;
     }
-    message += `💳 Pago: ${completedOrder.paymentMethod}\n\n`;
+    message += `💳 Método: ${completedOrder.paymentMethod}\n\n`;
     
-    message += `*PRODUCTOS:*\n`;
+    message += `*DETALLE DEL PEDIDO:*\n`;
     completedOrder.items.forEach((item) => {
       message += `• ${item.quantity}x ${item.name} ${item.option ? `(${item.option})` : ""} - ${storeConfig.currency}${(item.price * item.quantity).toFixed(2)}\n`;
     });
@@ -70,7 +71,8 @@ export default function OrderSuccessModal() {
       message += `\n📝 *Nota:* ${completedOrder.notes}\n`;
     }
 
-    message += `\n*TOTAL: ${storeConfig.currency}${completedOrder.total.toFixed(2)}*`;
+    message += `\n*TOTAL: ${storeConfig.currency}${completedOrder.total.toFixed(2)}*\n`;
+    message += `⏱️ _Quedo atento al despacho de mi pedido. ¡Gracias!_`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/${cleanPhone}?text=${encoded}`, "_blank");
@@ -224,20 +226,51 @@ export default function OrderSuccessModal() {
           className="relative bg-white w-full max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden z-10 border border-neutral-200 p-6 sm:p-8 text-center"
         >
           {/* Animated Success Badge */}
-          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 ring-8 ring-emerald-50">
-            <CheckCircle2 className="w-9 h-9" />
+          <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 ring-8 ring-emerald-50">
+            <CheckCircle2 className="w-8 h-8" />
           </div>
 
-          <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-            ¡Pedido Registrado con Éxito!
+          <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+            ⚡ Pedido Autoconfirmado en Vivo
           </span>
 
-          <h2 className="text-2xl font-extrabold text-neutral-900 mt-2">
-            Gracias por tu compra
+          <h2 className="text-xl sm:text-2xl font-extrabold text-neutral-900 mt-2">
+            ¡Tu pedido ya está en preparación!
           </h2>
           <p className="text-xs text-neutral-500 mt-1">
-            Código de seguimiento: <strong className="text-neutral-900 font-mono text-sm">{completedOrder.code}</strong>
+            Orden <strong className="text-neutral-900 font-mono text-sm">{completedOrder.code}</strong> • No necesitas enviar comprobante
           </p>
+
+          {/* PedidosYa-style Live Auto-Confirmation Tracker */}
+          <div className="mt-4 bg-emerald-950 text-white rounded-2xl p-3.5 text-left space-y-2.5 shadow-md">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-emerald-300 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span>Estado: En Preparación</span>
+              </span>
+              <span className="text-[11px] font-mono bg-white/10 px-2 py-0.5 rounded-md text-emerald-100">
+                ⏱️ Llegada est.: 25 - 35 min
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-1.5 pt-1">
+              <div className="space-y-1">
+                <div className="h-1.5 rounded-full bg-emerald-400" />
+                <span className="block text-[9px] font-bold text-emerald-300">1. Confirmado ✓</span>
+              </div>
+              <div className="space-y-1">
+                <div className="h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="block text-[9px] font-bold text-white">2. Preparando</span>
+              </div>
+              <div className="space-y-1">
+                <div className="h-1.5 rounded-full bg-white/20" />
+                <span className="block text-[9px] text-white/60">3. En camino</span>
+              </div>
+              <div className="space-y-1">
+                <div className="h-1.5 rounded-full bg-white/20" />
+                <span className="block text-[9px] text-white/60">4. Entregado</span>
+              </div>
+            </div>
+          </div>
 
           {/* Order Details Receipt Box */}
           <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200/80 my-5 text-left text-xs space-y-2">
@@ -302,23 +335,6 @@ export default function OrderSuccessModal() {
 
           {/* Action Buttons */}
           <div className="space-y-2.5">
-            <button
-              onClick={handleWhatsAppSend}
-              className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>Enviar Confirmación por WhatsApp al Local</span>
-            </button>
-
-            {/* Customer PDF Receipt Download */}
-            <button
-              onClick={handleDownloadReceiptPdf}
-              className="w-full py-2.5 px-4 bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-300 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs active:scale-98"
-            >
-              <Download className="w-4 h-4 text-neutral-600" />
-              <span>Guardar / Imprimir Comprobante Oficial (PDF)</span>
-            </button>
-
             {/* Optional Feature: Live Tracking for this order */}
             {features.orderTracking && (
               <button
@@ -327,20 +343,39 @@ export default function OrderSuccessModal() {
                   setCompletedOrder(null);
                   openTracking(ord);
                 }}
-                className="w-full py-2.5 px-4 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-bold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
               >
-                <Clock className="w-3.5 h-3.5 text-amber-600" />
-                <span>Rastrear este Pedido en Tiempo Real</span>
+                <Clock className="w-4 h-4 text-emerald-400" />
+                <span>Seguir mi Pedido en Tiempo Real</span>
               </button>
             )}
 
+            {/* Customer PDF Receipt Download */}
             <button
-              onClick={handleGoToAdminOrders}
-              className="w-full py-2.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer"
+              onClick={handleDownloadReceiptPdf}
+              className="w-full py-2.5 px-4 bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-300 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs active:scale-98"
             >
-              <LayoutDashboard className="w-3.5 h-3.5 text-amber-400" />
-              <span>Ver Pedido en el Panel de Administrador</span>
+              <Download className="w-4 h-4 text-neutral-600" />
+              <span>Descargar Recibo Oficial (PDF)</span>
             </button>
+
+            <button
+              onClick={handleWhatsAppSend}
+              className="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-600" />
+              <span>Consultar Estado por WhatsApp (Opcional)</span>
+            </button>
+
+            {isAdminAuthenticated && (
+              <button
+                onClick={handleGoToAdminOrders}
+                className="w-full py-2.5 px-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-xl font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-amber-500" />
+                <span>Ver Pedido en el Panel de Administrador</span>
+              </button>
+            )}
 
             <button
               onClick={() => setCompletedOrder(null)}

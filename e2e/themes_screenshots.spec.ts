@@ -40,13 +40,9 @@ test.describe('Verification of Full-Bleed Themes, Category Pill & Admin Tabs', (
     await page.screenshot({ path: 'mobile-screens/20_food_fullbleed_mobile.png', fullPage: false });
   });
 
-  test('2. Ropa (Full-Bleed en toda la página, Nombre de Marca KULT atrás, Animación y Español)', async ({ page }) => {
+  test('2. Ropa (Full-Bleed en toda la página, Nombre de Marca KULT atrás, Guía de Talles, Upselling y Autoconfirmación)', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 960 });
-    await page.goto('/');
-
-    // Switch to Fashion preset
-    await page.locator('button:has-text("KULT Studio")').first().click();
-    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.goto('/?giro=fashion');
     await page.waitForTimeout(800);
 
     // Hide sonner toast for clean screenshot
@@ -56,11 +52,48 @@ test.describe('Verification of Full-Bleed Themes, Category Pill & Admin Tabs', (
     // Desktop Fashion
     await page.screenshot({ path: 'mobile-screens/22_fashion_fullbleed_desktop.png', fullPage: false });
 
-    // Mobile Fashion
+    // Open a fashion product and verify the Interactive Size Guide ("¿Cuál es mi talle?")
+    const teeCard = page.getByRole('heading', { level: 3, name: /Heavyweight Boxy Tee/i });
+    await teeCard.scrollIntoViewIfNeeded();
+    await teeCard.click();
+    await page.waitForTimeout(300);
+
+    const sizeGuideBtn = page.getByRole('button', { name: /¿Cuál es mi talle\?/i });
+    await expect(sizeGuideBtn).toBeVisible();
+    await sizeGuideBtn.click();
+    await page.waitForTimeout(300);
+    await expect(page.getByText(/Guía de Medidas/i)).toBeVisible();
+    await page.locator('div.fixed.inset-0.z-50 > div.relative').screenshot({ path: 'mobile-screens/31_fashion_size_guide.png' });
+
+    // Add item to cart
+    await page.getByRole('button', { name: /Agregar al Carrito/i }).click();
+    await page.waitForTimeout(400);
+
+    // Mobile Fashion + Sticky Bottom Cart Bar
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(500);
     await page.screenshot({ path: 'mobile-screens/23_fashion_fullbleed_mobile.png', fullPage: false });
+
+    // Open Cart Drawer and screenshot Free Shipping Bar + Upselling ("Completa tu look")
+    await page.getByRole('button', { name: /Ir al Carrito & Pagar/i }).first().click();
+    await page.waitForTimeout(450);
+    await expect(page.getByText(/Completa tu look/i)).toBeVisible();
+    await page.screenshot({ path: 'mobile-screens/29_cart_upsell_freeshipping.png', fullPage: false });
+
+    // Proceed to Checkout and trigger Auto-Confirmation like PedidosYa
+    await page.getByRole('button', { name: /Continuar al Checkout/i }).click();
+    await page.locator("input[placeholder*='Ej. Juan']").fill('Carlos Mendoza');
+    await page.locator("input[placeholder*='Ej. +591']").fill('+591 71234567');
+    await page.locator("input[placeholder*='Ej. Av. Ballivián']").fill('Av. América #450');
+    await page.getByRole('button', { name: /Siguiente: Método de Pago/i }).click();
+    await page.locator("label:has-text('He leído y acepto') input[type='checkbox']").check();
+    await page.getByRole('button', { name: /Continuar al Pago con QR/i }).click();
+    await expect(page.getByRole('button', { name: /Autoconfirmar mi Pedido/i })).toBeVisible();
+    await page.getByRole('button', { name: /Autoconfirmar mi Pedido/i }).click();
+    await page.waitForTimeout(500);
+    await expect(page.getByText(/Pedido Autoconfirmado en Vivo/i)).toBeVisible();
+    await page.screenshot({ path: 'mobile-screens/30_pedidosya_autoconfirm.png', fullPage: false });
   });
 
   test('3. Modo Admin — Cambiar entre las 5 secciones sin pantalla en blanco', async ({ page }) => {

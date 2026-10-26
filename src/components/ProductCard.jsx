@@ -14,10 +14,12 @@ export default function ProductCard({ product }) {
   } = useStore();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [hasImageError, setHasImageError] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
 
   const isFashion = activePresetKey === "fashion";
   const isFood = activePresetKey === "restaurant";
   const isOutOfStock = product.stock <= 0;
+  const isLowStock = !isOutOfStock && product.stock <= 10;
   const inCartItem = cart.find((item) => item.id === product.id);
 
   const handleQuickAdd = (e) => {
@@ -29,6 +31,8 @@ export default function ProductCard({ product }) {
       return;
     }
     addToCart(product, null, 1);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1200);
   };
 
   const handleCardClick = () => {
@@ -97,6 +101,13 @@ export default function ProductCard({ product }) {
           {isOutOfStock && (
             <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-600 text-white uppercase tracking-wider shadow-xs">
               Agotado
+            </span>
+          )}
+
+          {/* Low stock urgency trigger */}
+          {isLowStock && (
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/95 text-neutral-950 uppercase tracking-wider shadow-xs">
+              🔥 Últimas {product.stock} u.
             </span>
           )}
         </div>
@@ -173,10 +184,15 @@ export default function ProductCard({ product }) {
             }`}
             title={isOutOfStock ? "Producto agotado" : "Añadir a mi pedido"}
           >
-            {inCartItem ? (
+            {justAdded ? (
               <>
                 <Check className="w-3.5 h-3.5" />
-                <span>({inCartItem.quantity})</span>
+                <span>¡Añadido!</span>
+              </>
+            ) : inCartItem ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                <span>En pedido ({inCartItem.quantity})</span>
               </>
             ) : (
               <>

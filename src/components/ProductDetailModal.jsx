@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useStore } from "../context/StoreContext";
 import { parseOptionExtraPrice, getOptionDetails } from "../utils/pricing";
-import { X, ShoppingBag, Plus, Minus, MessageCircle, AlertTriangle, Maximize2 } from "lucide-react";
+import { X, ShoppingBag, Plus, Minus, MessageCircle, AlertTriangle, Maximize2, Ruler } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ProductDetailModal() {
@@ -11,6 +11,7 @@ export default function ProductDetailModal() {
     openProductPerspective,
     addToCart, 
     storeConfig, 
+    activePresetKey,
     cart 
   } = useStore();
 
@@ -18,10 +19,12 @@ export default function ProductDetailModal() {
   const [selectedOption, setSelectedOption] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
 
   useEffect(() => {
     if (product) {
       setIsImageLoaded(false);
+      setShowSizeGuide(false);
       if (product.options && product.options.length > 0) {
         setSelectedOption(product.options[0]);
       } else {
@@ -178,9 +181,72 @@ export default function ProductDetailModal() {
               {/* Options selection if any */}
               {product.options && product.options.length > 0 && (
                 <div className="space-y-2 pt-2">
-                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider">
-                    {product.optionsLabel || "Opciones Disponibles"}:
-                  </label>
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                      {product.optionsLabel || "Opciones Disponibles"}:
+                    </label>
+                    {(activePresetKey === "fashion" || /talle|talla/i.test(product.optionsLabel || "")) && (
+                      <button
+                        type="button"
+                        onClick={() => setShowSizeGuide(!showSizeGuide)}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-neutral-900 underline hover:text-neutral-600 transition cursor-pointer"
+                      >
+                        <Ruler className="w-3.5 h-3.5" />
+                        <span>{showSizeGuide ? "Ocultar guía de talles" : "¿Cuál es mi talle?"}</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Expandable Interactive Size Guide Table for Fashion */}
+                  {showSizeGuide && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="bg-neutral-50 border border-neutral-200 rounded-xl p-3 text-[11px] space-y-2 overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between font-bold text-neutral-900">
+                        <span>📏 Guía de Medidas (Corte Oversize / Boxy)</span>
+                        <span className="text-[10px] text-neutral-500 font-normal">En centímetros (cm)</span>
+                      </div>
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-neutral-200 text-neutral-500 font-semibold">
+                            <th className="py-1">Talle</th>
+                            <th className="py-1">Pecho</th>
+                            <th className="py-1">Largo</th>
+                            <th className="py-1">Cintura / Equiv.</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-neutral-200/60 font-mono text-neutral-800">
+                          <tr>
+                            <td className="py-1 font-bold">S (28)</td>
+                            <td className="py-1">56 cm</td>
+                            <td className="py-1">70 cm</td>
+                            <td className="py-1">74-78 cm</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 font-bold">M (30)</td>
+                            <td className="py-1">59 cm</td>
+                            <td className="py-1">72 cm</td>
+                            <td className="py-1">79-83 cm</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 font-bold">L (32)</td>
+                            <td className="py-1">62 cm</td>
+                            <td className="py-1">75 cm</td>
+                            <td className="py-1">84-89 cm</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 font-bold">XL (34)</td>
+                            <td className="py-1">65 cm</td>
+                            <td className="py-1">78 cm</td>
+                            <td className="py-1">90-96 cm</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </motion.div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-2">
                     {product.options.map((opt) => {
                       const optDetails = getOptionDetails(opt, storeConfig.currency);

@@ -20,7 +20,9 @@ import {
   LayoutDashboard,
   Bot,
   MessageCircle,
-  Lock
+  Lock,
+  ShoppingBag,
+  ArrowRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BUSINESS_PRESETS } from "../data/presets";
@@ -42,6 +44,10 @@ export default function StorefrontView() {
     enterAdminMode,
     isAdminAuthenticated,
     isCartOpen,
+    setIsCartOpen,
+    cartCount,
+    cartSubtotal,
+    completedOrder,
     selectedProductForDetail,
     selectedProductForPerspective,
     isCheckoutOpen,
@@ -277,31 +283,59 @@ export default function StorefrontView() {
             </div>
           </div>
 
-          {/* Col 2: Business archetypes demo picker */}
+          {/* Col 2: Store Categories for Customers (or Business Archetypes if Admin is logged in) */}
           <div className="space-y-2">
-            <div className="font-bold text-neutral-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Giro de Negocio</span>
-            </div>
-            <p className="text-neutral-500 text-xs">
-              Alterna entre modelos preconfigurados:
-            </p>
-            <div className="grid grid-cols-1 gap-1.5 pt-1">
-              {Object.values(BUSINESS_PRESETS).slice(0, 3).map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => switchBusinessPreset(p.id)}
-                  className={`p-2 rounded-xl border text-left text-xs transition cursor-pointer flex items-center justify-between ${
-                    p.id === activePresetKey
-                      ? "bg-neutral-900 text-white border-neutral-900 font-semibold shadow-2xs"
-                      : "bg-neutral-50 hover:bg-neutral-100 border-neutral-200 text-neutral-700"
-                  }`}
-                >
-                  <span className="truncate">{p.name.split("|")[0]}</span>
-                  <span className="text-[10px] opacity-75">{p.badge.split("&")[0]}</span>
-                </button>
-              ))}
-            </div>
+            {isAdminAuthenticated ? (
+              <>
+                <div className="font-bold text-neutral-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Giro de Negocio (Modo Admin)</span>
+                </div>
+                <p className="text-neutral-500 text-xs">
+                  Alterna entre modelos preconfigurados:
+                </p>
+                <div className="grid grid-cols-1 gap-1.5 pt-1">
+                  {Object.values(BUSINESS_PRESETS).slice(0, 3).map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => switchBusinessPreset(p.id)}
+                      className={`p-2 rounded-xl border text-left text-xs transition cursor-pointer flex items-center justify-between ${
+                        p.id === activePresetKey
+                          ? "bg-neutral-900 text-white border-neutral-900 font-semibold shadow-2xs"
+                          : "bg-neutral-50 hover:bg-neutral-100 border-neutral-200 text-neutral-700"
+                      }`}
+                    >
+                      <span className="truncate">{p.name.split("|")[0]}</span>
+                      <span className="text-[10px] opacity-75">{p.badge.split("&")[0]}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="font-bold text-neutral-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <ShoppingBag className="w-3.5 h-3.5 text-neutral-700" />
+                  <span>Beneficios & Modalidades</span>
+                </div>
+                <p className="text-neutral-500 text-xs">
+                  Compras directas con confirmación inmediata:
+                </p>
+                <ul className="space-y-1.5 pt-1 text-xs text-neutral-600">
+                  <li className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span>⚡ Autoconfirmación de pedidos en vivo</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span>🚚 Envío Gratis en compras desde {storeConfig.currency}100</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span>💳 Pago con QR Simple y Efectivo</span>
+                  </li>
+                </ul>
+              </>
+            )}
           </div>
 
           {/* Col 3: Compliance & Legal Information */}
@@ -419,7 +453,9 @@ export default function StorefrontView() {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0, opacity: 0, y: 16 }}
             transition={{ type: "spring", stiffness: 320, damping: 24 }}
-            className="fixed bottom-5 right-4 sm:bottom-7 sm:right-7 z-30"
+            className={`fixed right-4 sm:right-7 z-30 transition-all duration-300 ${
+              cartCount > 0 ? "bottom-22 sm:bottom-24" : "bottom-5 sm:bottom-7"
+            }`}
           >
             {/* Mobile: Compact 48px circular FAB - Leaves 85% of screen width completely clear */}
             <div className="sm:hidden">
@@ -467,6 +503,54 @@ export default function StorefrontView() {
                 </div>
               </motion.button>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sticky Bottom Cart Bar (PedidosYa / Zara style) when items are in cart */}
+      <AnimatePresence>
+        {cartCount > 0 && !isCartOpen && !isCheckoutOpen && !selectedProductForDetail && !selectedProductForPerspective && !completedOrder && !isAdminPinModalOpen && (
+          <motion.div
+            initial={{ opacity: 0, transform: "translateY(28px)" }}
+            animate={{ opacity: 1, transform: "translateY(0px)" }}
+            exit={{ opacity: 0, transform: "translateY(28px)" }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed bottom-3 inset-x-3 sm:bottom-5 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-lg z-30 pointer-events-auto"
+          >
+            <button
+              type="button"
+              onClick={() => setIsCartOpen(true)}
+              className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 shadow-2xl border transition cursor-pointer active:scale-98 ${
+                isFashion
+                  ? "bg-[#0f0f0f] text-white border-white/15 rounded-none"
+                  : isFood
+                  ? "bg-[#ff5500] hover:bg-[#e64d00] text-white border-white/20 rounded-2xl"
+                  : "bg-neutral-900 hover:bg-neutral-800 text-white border-neutral-700 rounded-2xl"
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-7 h-7 rounded-full bg-white text-neutral-950 font-black text-xs flex items-center justify-center flex-shrink-0 shadow-xs">
+                  {cartCount}
+                </span>
+                <div className="text-left min-w-0">
+                  <span className="block text-xs sm:text-sm font-extrabold leading-tight truncate">
+                    Ir al Carrito & Pagar
+                  </span>
+                  <span className="block text-[10px] opacity-85 truncate">
+                    {cartSubtotal >= 100
+                      ? "🎉 ¡Tienes Envío Gratis desbloqueado!"
+                      : `Faltan ${storeConfig.currency}${(100 - cartSubtotal).toFixed(2)} para Envío Gratis`}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="text-sm sm:text-base font-black font-mono">
+                  {storeConfig.currency} {cartSubtotal.toFixed(2)}
+                </span>
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

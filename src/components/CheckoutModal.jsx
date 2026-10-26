@@ -33,6 +33,9 @@ export default function CheckoutModal() {
     cartSubtotal,
     storeConfig,
     placeOrder,
+    updateOrderStatus,
+    updateOrderPaymentStatus,
+    setCompletedOrder,
     features,
     appliedCoupon,
     discountAmount,
@@ -103,8 +106,11 @@ export default function CheckoutModal() {
       setIsSubmitting(false);
       setQrOrderRef(`#ORD-${Math.floor(1000 + Math.random() * 9000)}`);
       setQrSecondsLeft(599);
+      if (storeConfig.orderTypes && storeConfig.orderTypes.length > 0 && !storeConfig.orderTypes.includes(formData.orderType)) {
+        setFormData((prev) => ({ ...prev, orderType: storeConfig.orderTypes[0] }));
+      }
     }
-  }, [isCheckoutOpen]);
+  }, [isCheckoutOpen, storeConfig.orderTypes]);
 
   useEffect(() => {
     let timer;
@@ -123,9 +129,28 @@ export default function CheckoutModal() {
                      formData.orderType.toLowerCase().includes("camión");
 
   const baseDeliveryCost = isDelivery ? (storeConfig.deliveryCost || 0) : 0;
+  const freeShippingThreshold = storeConfig.freeShippingThreshold || 100;
   const isFreeShippingCoupon = features.coupons && appliedCoupon?.discountType === "free_shipping";
-  const deliveryCost = isFreeShippingCoupon ? 0 : baseDeliveryCost;
+  const isFreeShippingThresholdMet = cartSubtotal >= freeShippingThreshold;
+  const deliveryCost = isFreeShippingCoupon || isFreeShippingThresholdMet ? 0 : baseDeliveryCost;
   const grandTotal = Math.max(0, cartSubtotal - (features.coupons ? discountAmount : 0) + deliveryCost);
+
+  const handleAutoConfirmQrPayment = () => {
+    if (createdQrOrder) {
+      updateOrderPaymentStatus(createdQrOrder.id, "pagado");
+      updateOrderStatus(createdQrOrder.id, "preparando");
+      const confirmed = {
+        ...createdQrOrder,
+        paymentMethod: "QR Simple (Autoconfirmado)",
+        status: "preparando",
+        paymentStatus: "pagado",
+        paidAt: new Date().toISOString(),
+      };
+      setIsCheckoutOpen(false);
+      setCompletedOrder(confirmed);
+      toast.success(`⚡ Pago verificado automáticamente. ¡Pedido ${confirmed.code} en preparación!`);
+    }
+  };
 
   const formatCountdown = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -223,7 +248,8 @@ export default function CheckoutModal() {
         googleMapsUrl: isDelivery && deliveryLocation ? deliveryLocation.googleMapsUrl : null,
         orderType: formData.orderType,
         paymentMethod: formData.paymentMethod,
-        paymentStatus: "pendiente",
+        status: "preparando",
+        paymentStatus: "autoconfirmado_efectivo",
         notes: formData.notes,
         billing: requestInvoice ? {
           required: true,
@@ -233,7 +259,7 @@ export default function CheckoutModal() {
       });
 
       setIsSubmitting(false);
-      toast.success(`¡Pedido ${order.code} generado con éxito!`);
+      toast.success(`⚡ ¡Pedido ${order.code} autoconfirmado y en preparación!`);
     }, 700);
   };
 
@@ -644,6 +670,8 @@ export default function CheckoutModal() {
                         <span>
                           {isFreeShippingCoupon ? (
                             <span className="text-emerald-700 font-semibold">Gratis (Cupón aplicado)</span>
+                          ) : isFreeShippingThresholdMet && isDelivery ? (
+                            <span className="text-emerald-700 font-semibold">¡Envío Gratis!</span>
                           ) : (
                             `${storeConfig.currency} ${deliveryCost.toFixed(2)}`
                           )}
@@ -844,19 +872,28 @@ export default function CheckoutModal() {
                 </div>
               </div>
 
-              {/* Bank Transfer Waiting Status Banner */}
-              <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl space-y-2 text-center">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 font-bold text-xs border border-amber-300">
-                  <Clock className="w-3.5 h-3.5 text-amber-600 animate-spin" />
-                  <span>Esperando Acreditación Bancaria</span>
+              {/* Bank Transfer Waiting Status Banner (Auto-Confirmation System like PedidosYa) */}
+              <div className="p-4 bg-emerald-50/90 border border-emerald-200 rounded-2xl space-y-2 text-center">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 font-bold text-xs border border-emerald-300">
+                  <Clock className="w-3.5 h-3.5 text-emerald-600 animate-spin" />
+                  <span>Esperando Acreditación Bancaria (Autoconfirmación Activa)</span>
                 </div>
-                <p className="text-xs text-amber-950 leading-relaxed max-w-sm mx-auto">
-                  Tu comanda <strong className="font-mono text-neutral-900">{createdQrOrder?.code || qrOrderRef}</strong> ya está registrada en el sistema. Realiza la transferencia desde tu banca móvil. Cuando el depósito ingrese a la cuenta del local, se confirmará tu pedido y pasará a cocina.
+                <p className="text-xs text-emerald-950 leading-relaxed max-w-sm mx-auto">
+                  Tu pedido <strong className="font-mono text-neutral-900">{createdQrOrder?.code || qrOrderRef}</strong> cuenta con <strong>autoconfirmación inmediata</strong> (sin necesidad de enviar captura ni comprobante). Apenas transfieras desde tu app bancaria, tu pedido pasará directo a preparación.
                 </p>
               </div>
 
               {/* Action Buttons for the customer */}
               <div className="space-y-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleAutoConfirmQrPayment}
+                  className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>⚡ Ya realicé el pago — Autoconfirmar mi Pedido</span>
+                </button>
+
                 {features.orderTracking && (
                   <button
                     type="button"
@@ -870,21 +907,6 @@ export default function CheckoutModal() {
                     <span>Ver Seguimiento de mi Pedido en Vivo</span>
                   </button>
                 )}
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    const cleanPhone = storeConfig.phoneWhatsApp.replace(/[^0-9]/g, "");
-                    const msg = encodeURIComponent(
-                      `Hola ${storeConfig.name}, acabo de realizar la transferencia por QR Simple para mi pedido *${createdQrOrder?.code || qrOrderRef}* por un total de *${storeConfig.currency} ${grandTotal.toFixed(2)}*. Quedo atento a la confirmación de cocina.`
-                    );
-                    window.open(`https://wa.me/${cleanPhone}?text=${msg}`, "_blank");
-                  }}
-                  className="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <MessageSquare className="w-4 h-4 text-emerald-600" />
-                  <span>Avisar al Local por WhatsApp</span>
-                </button>
 
                 <button
                   type="button"

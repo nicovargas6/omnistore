@@ -234,9 +234,20 @@ export function StoreProvider({ children }) {
     }
   }, [storeConfig.businessHours]);
 
-  // Initialize from LocalStorage
+  // Initialize from LocalStorage or URL ?giro= / ?preset= parameter
   useEffect(() => {
     try {
+      const params = new URLSearchParams(window.location.search);
+      const urlPreset = params.get("giro") || params.get("preset");
+      if (urlPreset && BUSINESS_PRESETS[urlPreset]) {
+        const presetData = BUSINESS_PRESETS[urlPreset];
+        setActivePresetKey(urlPreset);
+        setStoreConfig(presetData);
+        setCategories(presetData.categories);
+        setProducts(sanitizeProducts(presetData.products, presetData.currency));
+        return;
+      }
+
       const savedData = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("omnistore_prototype_v3");
       if (savedData) {
         const parsed = JSON.parse(savedData);
@@ -630,7 +641,10 @@ export function StoreProvider({ children }) {
       orderData.orderType.toLowerCase().includes("camión");
 
     const baseDelivery = isDelivery ? storeConfig.deliveryCost || 0 : 0;
-    const finalDelivery = appliedCoupon?.discountType === "free_shipping" ? 0 : baseDelivery;
+    const freeShippingThreshold = storeConfig.freeShippingThreshold || 100;
+    const isFreeShippingUnlocked =
+      appliedCoupon?.discountType === "free_shipping" || cartSubtotal >= freeShippingThreshold;
+    const finalDelivery = isFreeShippingUnlocked ? 0 : baseDelivery;
     const totalOrder = Math.max(0, cartSubtotal - discountAmount + finalDelivery);
 
     const newOrder = {

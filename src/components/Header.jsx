@@ -78,34 +78,35 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-            {/* Privacy & My Data Center */}
+            {/* Privacy & My Data Center (Desktop only in top bar; accessible in footer on mobile) */}
             <button
               onClick={openPrivacyCenter}
-              className="flex items-center gap-1.5 text-neutral-300 hover:text-white px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer hover:bg-neutral-800"
+              className="hidden md:flex items-center gap-1.5 text-neutral-300 hover:text-white px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer hover:bg-neutral-800"
               title="Centro de Privacidad y gestión de datos personales"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="hidden md:inline">Mis Datos</span>
+              <span>Mis Datos</span>
             </button>
 
             {/* Optional Feature: Order Tracking in Top bar */}
             {features.orderTracking && viewMode === "storefront" && (
               <button
                 onClick={() => openTracking(null)}
-                className="flex items-center gap-1.5 text-neutral-300 hover:text-white px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer hover:bg-neutral-800"
-                title="Rastrear el estado de tu pedido con tu código o teléfono"
+                className="flex items-center gap-1.5 text-neutral-200 hover:text-white px-2.5 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer hover:bg-neutral-800"
+                title="Rastrear el estado de tu pedido en vivo"
               >
                 <Clock className="w-3.5 h-3.5 text-amber-400" />
-                <span className="hidden sm:inline">Rastrear Pedido</span>
+                <span>Rastrear Pedido</span>
               </button>
             )}
 
-            {/* Quick preset changer popup */}
+            {/* Quick preset changer popup — ONLY visible in Admin session */}
+            {isAdminAuthenticated && (
             <div className="relative">
               <button
                 onClick={() => setIsPresetDropdownOpen(!isPresetDropdownOpen)}
                 className="flex items-center gap-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer border border-neutral-700"
-                title="Seleccionar giro de negocio activo"
+                title="Seleccionar giro de negocio activo (Modo Admin)"
               >
                 <Sparkles className="w-3 h-3 text-amber-400" />
                 <span>Giro: <strong className="text-white">{storeConfig.name.split("|")[0].split("&")[0].trim()}</strong></span>
@@ -151,6 +152,7 @@ export default function Header() {
                 )}
               </AnimatePresence>
             </div>
+            )}
           </div>
         </div>
       </div>
