@@ -117,10 +117,16 @@ export default function StorefrontView() {
   const isFashion = activePresetKey === "fashion";
   const isFood = activePresetKey === "restaurant";
 
+  const brandWord = (storeConfig.name || "KULT")
+    .split("|")[0]
+    .replace(/\s+(studio|store|shop|boutique|moda|urbana|oficial)$/i, "")
+    .trim()
+    .toUpperCase();
+
   const containerThemeClass = isFashion
-    ? "bg-[#f4f3f0]"
+    ? "bg-[#ecebe6]"
     : isFood
-    ? "bg-[#faf8f5]"
+    ? "bg-[#f8f8f6]"
     : "bg-neutral-50/60";
 
   return (
@@ -128,39 +134,48 @@ export default function StorefrontView() {
       {/* Main Header */}
       <Header />
 
+      {/* Full-Bleed Hero for Fashion & Food (Not enclosed in a box) */}
+      {(isFashion || isFood) && (
+        <div className="w-full">
+          <Hero onExploreClick={scrollToCatalog} onSelectCategory={handleSelectCategory} />
+        </div>
+      )}
+
       {/* Main Body */}
-      <main className="flex-1 max-w-7xl mx-auto px-3.5 sm:px-6 py-4 sm:py-8 w-full pb-28 sm:pb-16 overflow-x-hidden">
-        {/* Themed Animated Hero Section */}
-        <Hero onExploreClick={scrollToCatalog} onSelectCategory={handleSelectCategory} />
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-10 lg:px-14 py-6 sm:py-10 w-full pb-28 sm:pb-16 overflow-x-hidden">
+        {/* Contained Hero only for Default presets (Hardware / Objects) */}
+        {!isFashion && !isFood && (
+          <Hero onExploreClick={scrollToCatalog} onSelectCategory={handleSelectCategory} />
+        )}
 
         {/* Catalog Section Anchor */}
         <div ref={catalogRef} className="pt-2">
           {/* Section Title with Theme-specific Editorial Treatment */}
           <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, transform: "translateY(14px)" }}
+            whileInView={{ opacity: 1, transform: "translateY(0px)" }}
             viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.4 }}
-            className="flex flex-col sm:flex-row sm:items-end justify-between mb-4 gap-2"
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-2"
           >
             <div>
               {isFashion ? (
                 <div>
-                  <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-neutral-500 flex items-center gap-1.5">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-[0.24em] text-neutral-500 flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-neutral-900" />
-                    [ FW26 ARCHIVE // PIEZAS DISPONIBLES ]
+                    ARCHIVO DE TEMPORADA 2026
                   </span>
-                  <h2 className="text-2xl sm:text-4xl font-extrabold text-neutral-950 uppercase tracking-tight font-['Outfit'] mt-1">
-                    {selectedCategory === "all" ? "BEST OF GAZU // KULT" : selectedCategory}
+                  <h2 className="text-2xl sm:text-4xl font-black text-[#0f0f0f] uppercase tracking-tight font-['Outfit'] mt-1">
+                    {selectedCategory === "all" ? `LO MEJOR DE ${brandWord}` : selectedCategory}
                   </h2>
                 </div>
               ) : isFood ? (
                 <div>
-                  <span className="text-xs font-semibold tracking-wider text-amber-800 uppercase flex items-center gap-1.5">
+                  <span className="text-xs font-bold tracking-widest text-[#ff5500] uppercase flex items-center gap-1.5">
                     <span>🍴</span>
-                    <span>SELECCIÓN DEL CHEF & ALTA COCINA</span>
+                    <span>MENÚ DE AUTOR & COCINA ARTESANAL</span>
                   </span>
-                  <h2 className="text-2xl sm:text-4xl font-normal text-stone-900 tracking-tight font-serif italic mt-1">
+                  <h2 className="text-2xl sm:text-4xl font-bold text-[#141413] tracking-tight font-serif mt-1">
                     {selectedCategory === "all" ? "Nuestra Carta de Especialidades" : selectedCategory}
                   </h2>
                 </div>
@@ -175,9 +190,19 @@ export default function StorefrontView() {
                 </div>
               )}
             </div>
-            <span className="text-xs text-neutral-500 font-medium">
-              Mostrando <strong className="text-neutral-900 font-bold">{filteredProducts.length}</strong> de {products.length} artículos
-            </span>
+            <div className="flex items-center gap-4">
+              <span className="text-xs text-neutral-500 font-medium">
+                Mostrando <strong className="text-neutral-900 font-bold">{filteredProducts.length}</strong> de {products.length} artículos
+              </span>
+              {selectedCategory !== "all" && (
+                <button
+                  onClick={() => handleSelectCategory("all")}
+                  className="text-xs font-bold uppercase tracking-wider text-neutral-900 border-b-2 border-neutral-900 pb-0.5 hover:opacity-70 transition cursor-pointer"
+                >
+                  VER TODO
+                </button>
+              )}
+            </div>
           </motion.div>
 
           {/* Filters, Search & Categories */}

@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, X, SlidersHorizontal, ArrowUpDown } from "lucide-react";
+import { Search, X, ArrowUpDown } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function CategoryFilterBar({
@@ -60,20 +60,20 @@ export default function CategoryFilterBar({
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         <button
           onClick={() => onSelectCategory("all")}
-          className={`relative flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer border ${
+          className={`relative isolate flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer border ${
             selectedCategory === "all"
-              ? "text-white border-neutral-900 shadow-sm"
+              ? "bg-neutral-900 text-white border-neutral-900 shadow-sm"
               : "bg-white text-neutral-700 hover:bg-neutral-50 border-neutral-200"
           }`}
         >
           {selectedCategory === "all" && (
             <motion.div
               layoutId="activeCategoryPill"
-              className="absolute inset-0 bg-neutral-900 rounded-[inherit] -z-10"
+              className="absolute inset-0 bg-neutral-900 rounded-[inherit] z-0"
               transition={{ type: "spring", stiffness: 380, damping: 32 }}
             />
           )}
-          <span>Todos ({totalProductsCount})</span>
+          <span className="relative z-10">Todos ({totalProductsCount})</span>
         </button>
 
         {categories.map((cat) => {
@@ -83,23 +83,23 @@ export default function CategoryFilterBar({
             <button
               key={cat}
               onClick={() => onSelectCategory(cat)}
-              className={`relative flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer border flex items-center gap-1.5 ${
+              className={`relative isolate flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer border flex items-center gap-1.5 ${
                 isSelected
-                  ? "text-white border-neutral-900 shadow-sm"
+                  ? "bg-neutral-900 text-white border-neutral-900 shadow-sm"
                   : "bg-white text-neutral-700 hover:bg-neutral-50 border-neutral-200"
               }`}
             >
               {isSelected && (
                 <motion.div
                   layoutId="activeCategoryPill"
-                  className="absolute inset-0 bg-neutral-900 rounded-[inherit] -z-10"
+                  className="absolute inset-0 bg-neutral-900 rounded-[inherit] z-0"
                   transition={{ type: "spring", stiffness: 380, damping: 32 }}
                 />
               )}
-              <span>{cat}</span>
+              <span className="relative z-10">{cat}</span>
               <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full transition-colors ${
-                  isSelected ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500"
+                className={`relative z-10 text-[10px] px-1.5 py-0.5 rounded-full font-bold transition-colors ${
+                  isSelected ? "bg-white/25 text-white" : "bg-neutral-100 text-neutral-600"
                 }`}
               >
                 {count}

@@ -16,7 +16,8 @@ import {
   Printer,
   ExternalLink,
   Volume2,
-  VolumeX
+  VolumeX,
+  Check
 } from "lucide-react";
 import { toast } from "sonner";
 import { OrderCardSkeleton } from "../Skeleton";

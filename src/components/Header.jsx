@@ -36,8 +36,15 @@ export default function Header() {
 
   const [isPresetDropdownOpen, setIsPresetDropdownOpen] = useState(false);
 
+  const headerThemeBg =
+    activePresetKey === "fashion"
+      ? "bg-[#ecebe6]/95 border-neutral-300/80"
+      : activePresetKey === "restaurant"
+      ? "bg-[#f8f8f6]/95 border-stone-200/80"
+      : "bg-white/90 border-neutral-200";
+
   return (
-    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-neutral-200 transition-colors">
+    <header className={`sticky top-0 z-40 ${headerThemeBg} backdrop-blur-md border-b transition-colors`}>
       {/* Top micro-bar with address, WhatsApp info, and quick preset pill */}
       <div className="bg-neutral-900 text-neutral-300 text-xs py-1 px-3 sm:px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">

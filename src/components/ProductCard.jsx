@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 export default function ProductCard({ product }) {
   const { 
     storeConfig, 
+    activePresetKey,
     addToCart, 
     setSelectedProductForDetail, 
     openProductPerspective,
@@ -14,6 +15,8 @@ export default function ProductCard({ product }) {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [hasImageError, setHasImageError] = useState(false);
 
+  const isFashion = activePresetKey === "fashion";
+  const isFood = activePresetKey === "restaurant";
   const isOutOfStock = product.stock <= 0;
   const inCartItem = cart.find((item) => item.id === product.id);
 
@@ -45,12 +48,20 @@ export default function ProductCard({ product }) {
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.25 }}
       onClick={handleCardClick}
-      className="group relative bg-white rounded-2xl border border-neutral-200/90 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col cursor-pointer"
+      className={`group relative transition-all duration-200 overflow-hidden flex flex-col cursor-pointer ${
+        isFashion
+          ? "bg-[#f8f7f4] rounded-none border border-neutral-300/90 hover:border-neutral-950"
+          : isFood
+          ? "bg-white rounded-2xl border border-stone-200/90 shadow-xs hover:shadow-md hover:border-[#ff5500]/40"
+          : "bg-white rounded-2xl border border-neutral-200/90 shadow-xs hover:shadow-md"
+      }`}
     >
       {/* Product Image Frame */}
       <div 
         onClick={handleImageClick}
-        className="relative aspect-4/3 sm:aspect-square bg-neutral-100 overflow-hidden cursor-zoom-in"
+        className={`relative bg-neutral-100 overflow-hidden cursor-zoom-in ${
+          isFashion ? "aspect-4/4 sm:aspect-4/5" : "aspect-4/3 sm:aspect-square"
+        }`}
       >
         {/* Skeleton shimmer loader while image is downloading */}
         {!isImageLoaded && (
@@ -149,11 +160,15 @@ export default function ProductCard({ product }) {
             whileTap={{ scale: 0.94 }}
             onClick={handleQuickAdd}
             disabled={isOutOfStock}
-            className={`flex items-center justify-center gap-1.5 px-3.5 py-2.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer active:scale-95 ${
+            className={`flex items-center justify-center gap-1.5 px-3.5 py-2.5 sm:px-4 sm:py-2 text-xs font-bold transition shadow-xs cursor-pointer active:scale-95 ${
+              isFashion ? "rounded-none uppercase tracking-wider" : "rounded-xl"
+            } ${
               isOutOfStock
                 ? "bg-neutral-100 text-neutral-400 cursor-not-allowed"
                 : inCartItem
                 ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20"
+                : isFood
+                ? "bg-[#ff5500] hover:bg-[#e64d00] text-white shadow-[#ff5500]/20"
                 : "bg-neutral-900 hover:bg-neutral-800 text-white"
             }`}
             title={isOutOfStock ? "Producto agotado" : "Añadir a mi pedido"}

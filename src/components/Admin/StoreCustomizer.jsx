@@ -20,7 +20,8 @@ import {
   Layers,
   Bot,
   Building2,
-  CreditCard
+  CreditCard,
+  ShieldCheck
 } from "lucide-react";
 import ImagePickerModal from "./ImagePickerModal";
 import { toast } from "sonner";
@@ -93,7 +94,8 @@ export default function StoreCustomizer() {
   const handlePresetClick = (presetKey) => {
     switchBusinessPreset(presetKey);
     const p = BUSINESS_PRESETS[presetKey];
-    setFormData({
+    setFormData((prev) => ({
+      ...prev,
       name: p.name,
       legalName: p.legalName || p.name,
       taxId: p.taxId || "NIT 1028475021",
@@ -107,7 +109,9 @@ export default function StoreCustomizer() {
       address: p.address,
       currency: p.currency,
       deliveryCost: p.deliveryCost || 0,
-    });
+      bankDetails: p.bankDetails || prev.bankDetails,
+      businessHours: p.businessHours || prev.businessHours,
+    }));
   };
 
   const handleCreateCoupon = (e) => {
