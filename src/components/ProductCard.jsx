@@ -46,13 +46,11 @@ export default function ProductCard({ product }) {
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.25 }}
+      initial={{ opacity: 0, transform: "translateY(10px)" }}
+      animate={{ opacity: 1, transform: "translateY(0px)" }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
       onClick={handleCardClick}
-      className={`group relative transition-all duration-200 overflow-hidden flex flex-col cursor-pointer ${
+      className={`group relative transition-colors duration-200 overflow-hidden flex flex-col cursor-pointer ${
         isFashion
           ? "bg-[#f8f7f4] rounded-none border border-neutral-300/90 hover:border-neutral-950"
           : isFood

@@ -66,13 +66,6 @@ export default function CategoryFilterBar({
               : "bg-white text-neutral-700 hover:bg-neutral-50 border-neutral-200"
           }`}
         >
-          {selectedCategory === "all" && (
-            <motion.div
-              layoutId="activeCategoryPill"
-              className="absolute inset-0 bg-neutral-900 rounded-[inherit] z-0"
-              transition={{ type: "spring", stiffness: 380, damping: 32 }}
-            />
-          )}
           <span className="relative z-10">Todos ({totalProductsCount})</span>
         </button>
 
@@ -89,13 +82,6 @@ export default function CategoryFilterBar({
                   : "bg-white text-neutral-700 hover:bg-neutral-50 border-neutral-200"
               }`}
             >
-              {isSelected && (
-                <motion.div
-                  layoutId="activeCategoryPill"
-                  className="absolute inset-0 bg-neutral-900 rounded-[inherit] z-0"
-                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                />
-              )}
               <span className="relative z-10">{cat}</span>
               <span
                 className={`relative z-10 text-[10px] px-1.5 py-0.5 rounded-full font-bold transition-colors ${

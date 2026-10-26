@@ -81,16 +81,21 @@ test.describe('Verification of Full-Bleed Themes, Category Pill & Admin Tabs', (
     await expect(page.getByText(/Completa tu look/i)).toBeVisible();
     await page.screenshot({ path: 'mobile-screens/29_cart_upsell_freeshipping.png', fullPage: false });
 
-    // Proceed to Checkout and trigger Auto-Confirmation like PedidosYa
+    // Proceed to Checkout and verify Automatic Bank Account Listener (PedidosYa style)
     await page.getByRole('button', { name: /Continuar al Checkout/i }).click();
     await page.locator("input[placeholder*='Ej. Juan']").fill('Carlos Mendoza');
     await page.locator("input[placeholder*='Ej. +591']").fill('+591 71234567');
+    await page.getByRole('button', { name: /Envío Estándar/i }).click();
     await page.locator("input[placeholder*='Ej. Av. Ballivián']").fill('Av. América #450');
     await page.getByRole('button', { name: /Siguiente: Método de Pago/i }).click();
     await page.locator("label:has-text('He leído y acepto') input[type='checkbox']").check();
     await page.getByRole('button', { name: /Continuar al Pago con QR/i }).click();
-    await expect(page.getByRole('button', { name: /Autoconfirmar mi Pedido/i })).toBeVisible();
-    await page.getByRole('button', { name: /Autoconfirmar mi Pedido/i }).click();
+    const bankBanner = page.getByText(/Esperando Acreditación Bancaria Automática/i);
+    await expect(bankBanner).toBeVisible();
+    await bankBanner.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: 'mobile-screens/32_qr_bank_listener.png', fullPage: false });
+    await page.getByRole('button', { name: /Simular ingreso del dinero al Banco|Autoconfirmar/i }).click();
     await page.waitForTimeout(500);
     await expect(page.getByText(/Pedido Autoconfirmado en Vivo/i)).toBeVisible();
     await page.screenshot({ path: 'mobile-screens/30_pedidosya_autoconfirm.png', fullPage: false });

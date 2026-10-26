@@ -57,27 +57,17 @@ export default function StorefrontView() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("featured");
-  const [isCatalogLoading, setIsCatalogLoading] = useState(false);
 
   const catalogRef = useRef(null);
 
-  // Trigger fluid skeleton animation when preset or model changes
+  // Instant category reset when preset changes (zero artificial lag)
   useEffect(() => {
     setSelectedCategory("all");
-    setIsCatalogLoading(true);
-    const timer = setTimeout(() => {
-      setIsCatalogLoading(false);
-    }, 380);
-    return () => clearTimeout(timer);
   }, [activePresetKey]);
 
   const handleSelectCategory = (cat) => {
     if (cat === selectedCategory) return;
-    setIsCatalogLoading(true);
     setSelectedCategory(cat);
-    setTimeout(() => {
-      setIsCatalogLoading(false);
-    }, 280);
   };
 
   const scrollToCatalog = () => {
@@ -224,10 +214,8 @@ export default function StorefrontView() {
             categoryCounts={categoryCounts}
           />
 
-          {/* Products Grid or Skeleton Loader */}
-          {isCatalogLoading ? (
-            <ProductGridSkeleton count={Math.min(8, products.length || 8)} />
-          ) : filteredProducts.length === 0 ? (
+          {/* Products Grid */}
+          {filteredProducts.length === 0 ? (
             <div className="bg-white rounded-3xl border border-neutral-200 p-12 sm:p-16 text-center my-6 shadow-2xs">
               <PackageSearch className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
               <h3 className="text-lg font-bold text-neutral-900 mb-1">

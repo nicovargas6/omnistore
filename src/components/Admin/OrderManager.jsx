@@ -269,27 +269,14 @@ export default function OrderManager() {
                         <strong>Pago:</strong> {order.paymentMethod}
                         {order.paymentStatus === "pagado" && (
                           <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-300">
-                            ✅ Pagado
+                            🏦 Acreditado automáticamente en Banco
                           </span>
                         )}
                         {(order.paymentStatus === "esperando_deposito_qr" || order.paymentStatus === "verificacion_pendiente") && (
-                          <div className="flex items-center gap-1.5 my-1 flex-wrap">
-                            <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full border border-amber-300">
-                              ⏳ Esperando depósito en banco
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                updateOrderPaymentStatus(order.id, "pagado");
-                                updateOrderStatus(order.id, "preparando");
-                                toast.success(`¡Depósito de orden ${order.code} confirmado en banco! Pasó a preparación.`);
-                              }}
-                              className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] shadow-xs cursor-pointer transition flex items-center gap-1"
-                            >
-                              <Check className="w-3 h-3" />
-                              <span>Confirmar Depósito Bancario</span>
-                            </button>
-                          </div>
+                          <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-full border border-amber-300 inline-flex items-center gap-1">
+                            <Clock className="w-3 h-3 animate-spin text-amber-700" />
+                            <span>Monitoreo bancario activo (se autoconfirmará al ingresar el pago)</span>
+                          </span>
                         )}
                       </div>
 

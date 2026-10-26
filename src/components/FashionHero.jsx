@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useStore } from "../context/StoreContext";
 import { 
   ArrowRight, 
@@ -28,8 +28,12 @@ function getBrandWord(rawName = "KULT") {
 
 export default function FashionHero({ onExploreClick, onSelectCategory }) {
   const { storeConfig, updateStoreConfig, enterAdminMode, isAdminAuthenticated } = useStore();
-  const [parallax, setParallax] = useState({ x: 0, y: 0 });
   const [editingImageField, setEditingImageField] = useState(null);
+
+  const spotlightRef = useRef(null);
+  const textLayerRef = useRef(null);
+  const modelLayerRef = useRef(null);
+  const rafRef = useRef(null);
 
   const brandWord = getBrandWord(storeConfig.name);
   const brandLetters = brandWord.split("");
@@ -51,15 +55,30 @@ export default function FashionHero({ onExploreClick, onSelectCategory }) {
       ? "text-[20vw] sm:text-[18vw] lg:text-[210px]"
       : "text-[14vw] sm:text-[13vw] lg:text-[150px]";
 
+  // Zero-rerender GPU parallax using direct DOM refs (60/120fps smooth)
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const relX = (e.clientX - rect.left) / rect.width - 0.5;
     const relY = (e.clientY - rect.top) / rect.height - 0.5;
-    setParallax({ x: relX, y: relY });
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      if (spotlightRef.current) {
+        spotlightRef.current.style.transform = `translate3d(${relX * 35}px, ${relY * 25}px, 0)`;
+      }
+      if (textLayerRef.current) {
+        textLayerRef.current.style.transform = `translate3d(${relX * -24}px, ${relY * -14}px, 0)`;
+      }
+      if (modelLayerRef.current) {
+        modelLayerRef.current.style.transform = `translate3d(${relX * 18}px, ${relY * 10}px, 0)`;
+      }
+    });
   };
 
   const handleMouseLeave = () => {
-    setParallax({ x: 0, y: 0 });
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (spotlightRef.current) spotlightRef.current.style.transform = "translate3d(0px, 0px, 0)";
+    if (textLayerRef.current) textLayerRef.current.style.transform = "translate3d(0px, 0px, 0)";
+    if (modelLayerRef.current) modelLayerRef.current.style.transform = "translate3d(0px, 0px, 0)";
   };
 
   const handleWhatsAppClick = () => {
@@ -90,11 +109,12 @@ export default function FashionHero({ onExploreClick, onSelectCategory }) {
       >
         {/* Subtle interactive studio spotlight gradient */}
         <div
+          ref={spotlightRef}
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 transition-transform duration-500 ease-out"
+          className="pointer-events-none absolute inset-0 transition-transform duration-300 ease-out"
           style={{
             background: "radial-gradient(circle at 50% 45%, rgba(255,255,255,0.65) 0%, rgba(236,235,230,0) 62%)",
-            transform: `translate3d(${parallax.x * 35}px, ${parallax.y * 25}px, 0)`
+            transform: "translate3d(0px, 0px, 0)"
           }}
         />
 
@@ -138,10 +158,11 @@ export default function FashionHero({ onExploreClick, onSelectCategory }) {
             
             {/* Huge Architectural Solid Black Brand Name Behind Model */}
             <div
+              ref={textLayerRef}
               aria-hidden="true"
-              className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 transition-transform duration-300 ease-out"
+              className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 transition-transform duration-200 ease-out"
               style={{
-                transform: `translate3d(${parallax.x * -24}px, ${parallax.y * -14}px, 0)`
+                transform: "translate3d(0px, 0px, 0)"
               }}
             >
               <div className="flex items-center justify-center">
@@ -165,20 +186,19 @@ export default function FashionHero({ onExploreClick, onSelectCategory }) {
 
             {/* Walking Streetwear Model Cutout in Front of the Giant Brand Letters */}
             <motion.div
+              ref={modelLayerRef}
               initial={{ opacity: 0, transform: "translateY(28px) scale(0.96)" }}
               animate={{ opacity: 1, transform: "translateY(0px) scale(1)" }}
               transition={{ duration: 0.75, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-10 flex items-center justify-center pointer-events-none transition-transform duration-300 ease-out"
+              className="relative z-10 flex items-center justify-center pointer-events-none transition-transform duration-200 ease-out"
               style={{
-                transform: `translate3d(${parallax.x * 18}px, ${parallax.y * 10}px, 0)`
+                transform: "translate3d(0px, 0px, 0)"
               }}
             >
-              <motion.img
-                animate={{ transform: ["translateY(-3px)", "translateY(3px)", "translateY(-3px)"] }}
-                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+              <img
                 src={heroModelImage}
                 alt={`${storeConfig.name} Editorial Model`}
-                className="h-[275px] sm:h-[440px] lg:h-[515px] w-auto object-contain filter contrast-[1.04] drop-shadow-[0_18px_28px_rgba(0,0,0,0.18)] select-none"
+                className="h-[275px] sm:h-[440px] lg:h-[515px] w-auto object-contain contrast-[1.04] drop-shadow-[0_18px_28px_rgba(0,0,0,0.18)] select-none"
                 onError={(e) => {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=900&q=85";

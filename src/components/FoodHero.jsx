@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef } from "react";
 import { useStore } from "../context/StoreContext";
 import { 
   UtensilsCrossed, 
@@ -11,7 +11,8 @@ import { motion } from "framer-motion";
 
 export default function FoodHero({ onExploreClick, onSelectCategory }) {
   const { storeConfig, products, setSelectedProductForDetail, enterAdminMode, isAdminAuthenticated } = useStore();
-  const [parallax, setParallax] = useState({ x: 0, y: 0 });
+  const dishLayerRef = useRef(null);
+  const rafRef = useRef(null);
 
   const restaurantName = (storeConfig.name || "Aura Bistró & Cantina").split("|")[0].trim();
 
@@ -23,15 +24,24 @@ export default function FoodHero({ onExploreClick, onSelectCategory }) {
       ? storeConfig.bannerUrl
       : "/luscious-food-bowl.png";
 
+  // Zero-rerender GPU parallax using direct DOM ref (60/120fps smooth)
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const relX = (e.clientX - rect.left) / rect.width - 0.5;
     const relY = (e.clientY - rect.top) / rect.height - 0.5;
-    setParallax({ x: relX, y: relY });
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      if (dishLayerRef.current) {
+        dishLayerRef.current.style.transform = `translate3d(${relX * 16}px, ${relY * 12}px, 0)`;
+      }
+    });
   };
 
   const handleMouseLeave = () => {
-    setParallax({ x: 0, y: 0 });
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (dishLayerRef.current) {
+      dishLayerRef.current.style.transform = "translate3d(0px, 0px, 0)";
+    }
   };
 
   const handleCategoryShortcut = (categoryName) => {
@@ -208,22 +218,21 @@ export default function FoodHero({ onExploreClick, onSelectCategory }) {
         {/* Right Column: Overhead Wooden Platter with Restaurant's Signature Dish ("Ojo de Bife Angus & Papas Trufadas") */}
         <div className="lg:col-span-6 flex flex-col items-center justify-center lg:items-end">
           <motion.div
+            ref={dishLayerRef}
             initial={{ opacity: 0, transform: "scale(0.92)" }}
             animate={{ opacity: 1, transform: "scale(1)" }}
             transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
             onClick={handleDishClick}
             title={signatureDish ? `Ver ${signatureDish.name}` : "Ver plato"}
-            className="group relative w-full max-w-[330px] sm:max-w-[460px] lg:max-w-[530px] flex items-center justify-center cursor-pointer transition-transform duration-300 ease-out"
+            className="group relative w-full max-w-[330px] sm:max-w-[460px] lg:max-w-[530px] flex items-center justify-center cursor-pointer transition-transform duration-200 ease-out"
             style={{
-              transform: `translate3d(${parallax.x * 16}px, ${parallax.y * 12}px, 0)`
+              transform: "translate3d(0px, 0px, 0)"
             }}
           >
-            <motion.img
-              animate={{ transform: ["translateY(-4px)", "translateY(4px)", "translateY(-4px)"] }}
-              transition={{ repeat: Infinity, duration: 5.5, ease: "easeInOut" }}
+            <img
               src={heroDishImage}
               alt={signatureDish ? signatureDish.name : "Ojo de Bife Angus & Papas Trufadas"}
-              className="w-full h-auto object-contain drop-shadow-[0_22px_32px_rgba(28,25,23,0.16)] group-hover:scale-[1.02] transition-transform duration-500 select-none"
+              className="w-full h-auto object-contain drop-shadow-[0_22px_32px_rgba(28,25,23,0.16)] group-hover:scale-[1.02] transition-transform duration-300 select-none"
               onError={(e) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=85";
