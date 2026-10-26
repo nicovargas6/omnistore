@@ -204,6 +204,20 @@ export default function OrderTrackingModal() {
                     <div className="text-neutral-400 text-[11px] mt-0.5">
                       Modalidad: {currentOrder.orderType} • {currentOrder.customerAddress}
                     </div>
+                    <div className="mt-1 flex items-center gap-2">
+                      {(currentOrder.paymentStatus === "esperando_confirmacion_bancaria" || currentOrder.paymentStatus === "esperando_deposito_qr") && (
+                        <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-md border border-amber-300 inline-flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-amber-700 animate-spin" />
+                          <span>Esperando confirmación de pago en cuenta de banco</span>
+                        </span>
+                      )}
+                      {currentOrder.paymentStatus === "pagado" && (
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md border border-emerald-300 inline-flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-700" />
+                          <span>Pago por QR confirmado</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="text-right">

@@ -47,32 +47,14 @@ export default function OrderSuccessModal() {
 
   if (!completedOrder) return null;
 
+  const isAwaitingBankConfirmation = completedOrder.paymentStatus === "esperando_confirmacion_bancaria" || completedOrder.paymentStatus === "esperando_deposito_qr";
+
   const handleWhatsAppSend = () => {
     const cleanPhone = storeConfig.phoneWhatsApp.replace(/[^0-9]/g, "");
     
-    // Construct auto-confirmed order message (NO receipt/comprobante requested)
-    let message = `⚡ *PEDIDO AUTOCONFIRMADO EN ${storeConfig.name.toUpperCase()}*\n`;
-    message += `📋 Orden: *${completedOrder.code}* (Confirmado automáticamente ✓)\n`;
-    message += `👤 Cliente: ${completedOrder.customerName}\n`;
-    message += `📞 Teléfono: ${completedOrder.customerPhone}\n`;
-    message += `🚚 Modalidad: ${completedOrder.orderType}\n`;
-    message += `📍 Entrega: ${completedOrder.customerAddress}\n`;
-    if (completedOrder.googleMapsUrl) {
-      message += `🗺️ *Ubicación en Mapa:* ${completedOrder.googleMapsUrl}\n`;
-    }
-    message += `💳 Método: ${completedOrder.paymentMethod}\n\n`;
-    
-    message += `*DETALLE DEL PEDIDO:*\n`;
-    completedOrder.items.forEach((item) => {
-      message += `• ${item.quantity}x ${item.name} ${item.option ? `(${item.option})` : ""} - ${storeConfig.currency}${(item.price * item.quantity).toFixed(2)}\n`;
-    });
-
-    if (completedOrder.notes) {
-      message += `\n📝 *Nota:* ${completedOrder.notes}\n`;
-    }
-
-    message += `\n*TOTAL: ${storeConfig.currency}${completedOrder.total.toFixed(2)}*\n`;
-    message += `⏱️ _Quedo atento al despacho de mi pedido. ¡Gracias!_`;
+    let message = isAwaitingBankConfirmation
+      ? `👋 *HOLA ${storeConfig.name.toUpperCase()}*\nAcabo de realizar el pedido *${completedOrder.code}* mediante *QR Simple*.\n💰 *Monto Transferido:* ${storeConfig.currency}${completedOrder.total.toFixed(2)}\n👤 Cliente: ${completedOrder.customerName}\n📞 Teléfono: ${completedOrder.customerPhone}\n🚚 Modalidad: ${completedOrder.orderType}\n📍 Entrega: ${completedOrder.customerAddress}\n\n_Ya realicé el pago por QR a su cuenta. Quedo atento a su confirmación para el despacho. ¡Gracias!_`
+      : `⚡ *PEDIDO CONFIRMADO EN ${storeConfig.name.toUpperCase()}*\n📋 Orden: *${completedOrder.code}*\n👤 Cliente: ${completedOrder.customerName}\n📞 Teléfono: ${completedOrder.customerPhone}\n🚚 Modalidad: ${completedOrder.orderType}\n📍 Entrega: ${completedOrder.customerAddress}\n${completedOrder.googleMapsUrl ? `🗺️ *Ubicación en Mapa:* ${completedOrder.googleMapsUrl}\n` : ""}💳 Método: ${completedOrder.paymentMethod}\n\n*TOTAL: ${storeConfig.currency}${completedOrder.total.toFixed(2)}*\n⏱️ _Quedo atento al despacho de mi pedido. ¡Gracias!_`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/${cleanPhone}?text=${encoded}`, "_blank");
@@ -153,52 +135,101 @@ export default function OrderSuccessModal() {
       <div
         className="relative bg-white w-full max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden z-10 border border-neutral-200 p-6 sm:p-8 text-center"
       >
-          {/* Animated Success Badge */}
-          <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 ring-8 ring-emerald-50">
-            <CheckCircle2 className="w-8 h-8" />
-          </div>
+          {/* Status Badge */}
+          {isAwaitingBankConfirmation ? (
+            <div className="w-14 h-14 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 ring-8 ring-amber-50">
+              <Clock className="w-8 h-8 animate-pulse" />
+            </div>
+          ) : (
+            <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 ring-8 ring-emerald-50">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+          )}
 
-          <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-            ⚡ Pedido Autoconfirmado en Vivo
-          </span>
+          {isAwaitingBankConfirmation ? (
+            <span className="text-[11px] font-extrabold text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 inline-block">
+              ⏳ Pedido Completado • Esperando Confirmación de Pago
+            </span>
+          ) : (
+            <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 inline-block">
+              ⚡ Pedido Confirmado en Vivo
+            </span>
+          )}
 
           <h2 className="text-xl sm:text-2xl font-extrabold text-neutral-900 mt-2">
-            ¡Tu pedido ya está en preparación!
+            {isAwaitingBankConfirmation
+              ? "¡Pedido completado con éxito!"
+              : "¡Tu pedido ya está en preparación!"}
           </h2>
           <p className="text-xs text-neutral-500 mt-1">
-            Orden <strong className="text-neutral-900 font-mono text-sm">{completedOrder.code}</strong> • No necesitas enviar comprobante
+            Orden <strong className="text-neutral-900 font-mono text-sm">{completedOrder.code}</strong> • {isAwaitingBankConfirmation ? "El negocio confirmará tu pago al revisar su cuenta" : "Confirmado para despacho"}
           </p>
 
-          {/* PedidosYa-style Live Auto-Confirmation Tracker */}
-          <div className="mt-4 bg-emerald-950 text-white rounded-2xl p-3.5 text-left space-y-2.5 shadow-md">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-emerald-300 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>Estado: En Preparación</span>
-              </span>
-              <span className="text-[11px] font-mono bg-white/10 px-2 py-0.5 rounded-md text-emerald-100">
-                ⏱️ Llegada est.: 25 - 35 min
-              </span>
+          {/* Status Tracker */}
+          {isAwaitingBankConfirmation ? (
+            <div className="mt-4 bg-amber-950 text-white rounded-2xl p-4 text-left space-y-2.5 shadow-md border border-amber-800">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-amber-300 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                  <span>Estado: Esperando Confirmación Bancaria</span>
+                </span>
+                <span className="text-[11px] font-mono bg-white/10 px-2 py-0.5 rounded-md text-amber-200">
+                  Monto: {storeConfig.currency}{completedOrder.total.toFixed(2)}
+                </span>
+              </div>
+              <p className="text-xs text-amber-100/90 leading-relaxed">
+                Tu pedido fue registrado. El encargado del negocio verificará el ingreso del dinero en su cuenta bancaria y confirmará tu compra para pasarla a preparación.
+              </p>
+              <div className="grid grid-cols-4 gap-1.5 pt-1">
+                <div className="space-y-1">
+                  <div className="h-1.5 rounded-full bg-emerald-400" />
+                  <span className="block text-[9px] font-bold text-emerald-300">1. Registrado ✓</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="block text-[9px] font-bold text-amber-300">2. En Revisión</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="h-1.5 rounded-full bg-white/20" />
+                  <span className="block text-[9px] text-white/50">3. Preparando</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="h-1.5 rounded-full bg-white/20" />
+                  <span className="block text-[9px] text-white/50">4. Entregado</span>
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-4 gap-1.5 pt-1">
-              <div className="space-y-1">
-                <div className="h-1.5 rounded-full bg-emerald-400" />
-                <span className="block text-[9px] font-bold text-emerald-300">1. Confirmado ✓</span>
+          ) : (
+            <div className="mt-4 bg-emerald-950 text-white rounded-2xl p-3.5 text-left space-y-2.5 shadow-md">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-emerald-300 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span>Estado: En Preparación</span>
+                </span>
+                <span className="text-[11px] font-mono bg-white/10 px-2 py-0.5 rounded-md text-emerald-100">
+                  ⏱️ Llegada est.: 25 - 35 min
+                </span>
               </div>
-              <div className="space-y-1">
-                <div className="h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="block text-[9px] font-bold text-white">2. Preparando</span>
-              </div>
-              <div className="space-y-1">
-                <div className="h-1.5 rounded-full bg-white/20" />
-                <span className="block text-[9px] text-white/60">3. En camino</span>
-              </div>
-              <div className="space-y-1">
-                <div className="h-1.5 rounded-full bg-white/20" />
-                <span className="block text-[9px] text-white/60">4. Entregado</span>
+              <div className="grid grid-cols-4 gap-1.5 pt-1">
+                <div className="space-y-1">
+                  <div className="h-1.5 rounded-full bg-emerald-400" />
+                  <span className="block text-[9px] font-bold text-emerald-300">1. Confirmado ✓</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="block text-[9px] font-bold text-white">2. Preparando</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="h-1.5 rounded-full bg-white/20" />
+                  <span className="block text-[9px] text-white/60">3. En camino</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="h-1.5 rounded-full bg-white/20" />
+                  <span className="block text-[9px] text-white/60">4. Entregado</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Order Details Receipt Box */}
           <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200/80 my-5 text-left text-xs space-y-2">

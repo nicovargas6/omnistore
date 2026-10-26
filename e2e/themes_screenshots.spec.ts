@@ -81,7 +81,7 @@ test.describe('Verification of Full-Bleed Themes, Category Pill & Admin Tabs', (
     await expect(page.getByText(/Completa tu look/i)).toBeVisible();
     await page.screenshot({ path: 'mobile-screens/29_cart_upsell_freeshipping.png', fullPage: false });
 
-    // Proceed to Checkout and verify Automatic Bank Account Listener (PedidosYa style)
+    // Proceed to Checkout and verify QR payment screen with exact amount
     await page.getByRole('button', { name: /Continuar al Checkout/i }).click();
     await page.locator("input[placeholder*='Ej. Juan']").fill('Carlos Mendoza');
     await page.locator("input[placeholder*='Ej. +591']").fill('+591 71234567');
@@ -90,18 +90,20 @@ test.describe('Verification of Full-Bleed Themes, Category Pill & Admin Tabs', (
     await page.getByRole('button', { name: /Siguiente: Método de Pago/i }).click();
     await page.locator("label:has-text('He leído y acepto') input[type='checkbox']").check();
     await page.getByRole('button', { name: /Continuar al Pago con QR/i }).click();
-    const bankBanner = page.getByText(/Esperando Acreditación Bancaria Automática/i);
-    await expect(bankBanner).toBeVisible();
-    await bankBanner.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(700);
+    const exactAmountBanner = page.getByText(/Monto Exacto a Pagar por QR/i);
+    await expect(exactAmountBanner).toBeVisible();
+    await exactAmountBanner.scrollIntoViewIfNeeded();
     await page.screenshot({ path: 'mobile-screens/32_qr_bank_listener.png', fullPage: false });
-    await page.getByRole('button', { name: /Simular ingreso del dinero al Banco|Autoconfirmar/i }).click();
+    
+    // Customer clicks "Ya realicé el pago por QR"
+    await page.getByRole('button', { name: /Ya realicé el pago por QR/i }).click();
     await page.waitForTimeout(500);
-    await expect(page.getByText(/Pedido Autoconfirmado en Vivo/i)).toBeVisible();
+    await expect(page.getByText(/Esperando Confirmación de Pago/i)).toBeVisible();
     await page.screenshot({ path: 'mobile-screens/30_pedidosya_autoconfirm.png', fullPage: false });
   });
 
-  test('3. Modo Admin — Cambiar entre las 5 secciones sin pantalla en blanco', async ({ page }) => {
+  test('3. Modo Admin — Cambiar entre las 5 secciones sin pantalla en blanco y confirmar pago en banco', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
 
@@ -123,9 +125,14 @@ test.describe('Verification of Full-Bleed Themes, Category Pill & Admin Tabs', (
     await page.getByRole('button', { name: /Inventario & Productos/i }).click();
     await expect(page.getByText(/Control de Inventario & Catálogo/i)).toBeVisible();
 
-    // 3. Pedidos & Ventas tab
+    // 3. Pedidos & Ventas tab + verify "Confirmar pago recibido en banco" button
     await page.getByRole('button', { name: /Pedidos & Ventas/i }).click();
     await expect(page.getByText(/Gestión de Ventas & Pedidos/i)).toBeVisible();
+    const confirmBankBtn = page.getByRole('button', { name: /Confirmar pago recibido en banco/i }).first();
+    if (await confirmBankBtn.isVisible()) {
+      await confirmBankBtn.click();
+      await expect(page.getByText(/Pago verificado y confirmado en banco/i).first()).toBeVisible();
+    }
 
     // 4. Categorías tab
     await page.getByRole('button', { name: /Categorías/i }).click();

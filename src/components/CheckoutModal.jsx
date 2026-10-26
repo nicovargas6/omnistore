@@ -97,8 +97,6 @@ export default function CheckoutModal() {
   const [checkoutStep, setCheckoutStep] = useState("form");
   const [qrOrderRef, setQrOrderRef] = useState("");
   const [qrSecondsLeft, setQrSecondsLeft] = useState(599);
-  const [bankVerificationStage, setBankVerificationStage] = useState("listening"); // 'listening' | 'detecting' | 'accredited'
-  const [bankTransactionId, setBankTransactionId] = useState("");
 
   useEffect(() => {
     if (isCheckoutOpen) {
@@ -106,8 +104,6 @@ export default function CheckoutModal() {
       setCheckoutStep("form");
       setFormStep(1);
       setIsSubmitting(false);
-      setBankVerificationStage("listening");
-      setBankTransactionId(`ACH-${Math.floor(100000 + Math.random() * 900000)}`);
       setQrOrderRef(`#ORD-${Math.floor(1000 + Math.random() * 9000)}`);
       setQrSecondsLeft(599);
       if (storeConfig.orderTypes && storeConfig.orderTypes.length > 0) {
@@ -131,31 +127,6 @@ export default function CheckoutModal() {
     return () => clearInterval(timer);
   }, [checkoutStep, qrSecondsLeft]);
 
-  // Automatic Bank Account Webhook Listener (PedidosYa / QR Simple ASOBAN style)
-  // Confirms the order ONLY when the funds arrive in the business's bank account, automatically without Admin intervention.
-  useEffect(() => {
-    if (checkoutStep !== "qr_payment" || !createdQrOrder) return;
-
-    const detectTimer = setTimeout(() => {
-      setBankVerificationStage((prev) => (prev === "listening" ? "detecting" : prev));
-    }, 3200);
-
-    const creditTimer = setTimeout(() => {
-      setBankVerificationStage((prev) => {
-        if (prev !== "accredited") {
-          finalizeBankAccreditation(createdQrOrder);
-          return "accredited";
-        }
-        return prev;
-      });
-    }, 6200);
-
-    return () => {
-      clearTimeout(detectTimer);
-      clearTimeout(creditTimer);
-    };
-  }, [checkoutStep, createdQrOrder]);
-
   if (!isCheckoutOpen) return null;
 
   const isDelivery = formData.orderType.toLowerCase().includes("delivery") || 
@@ -169,28 +140,12 @@ export default function CheckoutModal() {
   const deliveryCost = isFreeShippingCoupon || isFreeShippingThresholdMet ? 0 : baseDeliveryCost;
   const grandTotal = Math.max(0, cartSubtotal - (features.coupons ? discountAmount : 0) + deliveryCost);
 
-  const finalizeBankAccreditation = (orderObj) => {
-    const targetOrder = orderObj || createdQrOrder;
+  const handleClientFinishedPayment = () => {
+    const targetOrder = createdQrOrder;
     if (!targetOrder) return;
-    const txId = bankTransactionId || `ACH-${Math.floor(100000 + Math.random() * 900000)}`;
-    updateOrderPaymentStatus(targetOrder.id, "pagado");
-    updateOrderStatus(targetOrder.id, "preparando");
-    const confirmed = {
-      ...targetOrder,
-      paymentMethod: `QR Simple (Acreditado en Banco • Ref. ${txId})`,
-      status: "preparando",
-      paymentStatus: "pagado",
-      bankTransactionId: txId,
-      paidAt: new Date().toISOString(),
-    };
     setIsCheckoutOpen(false);
-    setCompletedOrder(confirmed);
-    toast.success(`🏦 Depósito bancario detectado (${txId}). ¡Pedido ${confirmed.code} confirmado automáticamente!`);
-  };
-
-  const handleAutoConfirmQrPayment = () => {
-    setBankVerificationStage("accredited");
-    finalizeBankAccreditation(createdQrOrder);
+    setCompletedOrder(targetOrder);
+    toast.success(`¡Pedido ${targetOrder.code} completado! Esperando verificación bancaria.`);
   };
 
   const formatCountdown = (seconds) => {
@@ -260,8 +215,9 @@ export default function CheckoutModal() {
           deliveryCoords: isDelivery ? deliveryLocation : null,
           googleMapsUrl: isDelivery && deliveryLocation ? deliveryLocation.googleMapsUrl : null,
           orderType: formData.orderType,
-          paymentMethod: "QR Simple (Esperando Acreditación)",
-          paymentStatus: "esperando_deposito_qr",
+          paymentMethod: "QR Simple (Transferencia)",
+          paymentStatus: "esperando_confirmacion_bancaria",
+          status: "pendiente",
           notes: formData.notes,
           billing: requestInvoice ? {
             required: true,
@@ -274,7 +230,7 @@ export default function CheckoutModal() {
         setCreatedQrOrder(order);
         setQrOrderRef(order.code);
         setCheckoutStep("qr_payment");
-        toast.info(`Comanda ${order.code} registrada. Realiza la transferencia QR.`);
+        toast.info(`Pedido ${order.code} generado. Escanea el QR para pagar.`);
       }, 500);
       return;
     }
@@ -816,20 +772,20 @@ export default function CheckoutModal() {
                 </p>
               </div>
 
-              {/* Amount Display with 0 Extra Cents */}
-              <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200 text-center space-y-1">
-                <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">
-                  Monto Exacto a Transferir (0 Centavos Extra)
+              {/* Amount Display with exact total and zero fees */}
+              <div className="bg-emerald-50/80 rounded-2xl p-4 sm:p-5 border-2 border-emerald-500/30 text-center space-y-1.5 shadow-xs">
+                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider block">
+                  Monto Exacto a Pagar por QR
                 </span>
-                <div className="text-3xl sm:text-4xl font-black text-neutral-950 font-mono tracking-tight">
-                  {storeConfig.currency} {grandTotal.toFixed(2)}
+                <div className="text-3xl sm:text-4xl font-black text-emerald-950 font-mono tracking-tight">
+                  {storeConfig.currency} {(createdQrOrder?.total || grandTotal).toFixed(2)}
                 </div>
                 <div className="pt-1 flex flex-wrap items-center justify-center gap-2">
-                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md">
-                    0% Comisión Bancaria
+                  <span className="text-[11px] font-semibold text-emerald-800 bg-white border border-emerald-200 px-2.5 py-0.5 rounded-md">
+                    Sin comisiones extra
                   </span>
-                  <span className="text-[11px] font-mono text-neutral-600 bg-white border border-neutral-200 px-2.5 py-0.5 rounded-md">
-                    Glosa en QR: <strong className="text-neutral-900">{qrOrderRef}</strong>
+                  <span className="text-[11px] font-mono text-neutral-700 bg-white border border-neutral-200 px-2.5 py-0.5 rounded-md">
+                    Glosa / Referencia: <strong className="text-neutral-900">{createdQrOrder?.code || qrOrderRef}</strong>
                   </span>
                 </div>
               </div>
@@ -872,7 +828,7 @@ export default function CheckoutModal() {
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <span className="bg-emerald-600 text-white font-black text-[9px] uppercase tracking-wider px-2 py-0.5 rounded shadow">
-                      PAGO SIMPLE
+                      PAGO SIMPLE QR
                     </span>
                   </div>
                 </div>
@@ -898,51 +854,15 @@ export default function CheckoutModal() {
                 </div>
               </div>
 
-              {/* Automatic Bank Account Webhook Listener (PedidosYa style: Confirms ONLY when funds enter the business bank account) */}
-              <div className="p-4 bg-emerald-50/90 border border-emerald-200 rounded-2xl space-y-3 text-center">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 font-bold text-xs border border-emerald-300">
-                  {bankVerificationStage === "detecting" ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 text-emerald-700 animate-spin" />
-                      <span>Transferencia Detectada — Verificando ingreso en cuenta...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="w-3.5 h-3.5 text-emerald-600 animate-spin" />
-                      <span>Esperando Acreditación Bancaria Automática</span>
-                    </>
-                  )}
+              {/* Friendly instructions card */}
+              <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl text-center space-y-1.5 text-xs text-amber-950">
+                <div className="font-bold flex items-center justify-center gap-1.5 text-amber-900">
+                  <Clock className="w-4 h-4 text-amber-700" />
+                  <span>Pasos para completar tu compra:</span>
                 </div>
-
-                {/* 3-Step Bank Account Verification Progress */}
-                <div className="grid grid-cols-3 gap-1.5 max-w-sm mx-auto pt-0.5 text-left">
-                  <div className="bg-white/90 p-2 rounded-xl border border-emerald-200">
-                    <div className="h-1 rounded-full bg-emerald-500 mb-1" />
-                    <span className="block text-[9px] font-extrabold text-emerald-900 uppercase">1. QR Generado</span>
-                    <span className="block text-[9px] text-neutral-500 truncate">Glosa {qrOrderRef}</span>
-                  </div>
-                  <div className={`p-2 rounded-xl border transition-colors ${
-                    bankVerificationStage === "detecting" || bankVerificationStage === "accredited"
-                      ? "bg-white border-emerald-400 shadow-2xs"
-                      : "bg-white/60 border-emerald-200/70"
-                  }`}>
-                    <div className={`h-1 rounded-full mb-1 ${
-                      bankVerificationStage === "detecting" ? "bg-emerald-500 animate-pulse" : "bg-emerald-200"
-                    }`} />
-                    <span className="block text-[9px] font-extrabold text-emerald-900 uppercase">2. Banco Receptor</span>
-                    <span className="block text-[9px] text-neutral-500 truncate">
-                      {bankVerificationStage === "detecting" ? "Recibiendo abono..." : "Escuchando cuenta..."}
-                    </span>
-                  </div>
-                  <div className="bg-white/60 p-2 rounded-xl border border-emerald-200/70">
-                    <div className="h-1 rounded-full bg-emerald-200 mb-1" />
-                    <span className="block text-[9px] font-extrabold text-emerald-900 uppercase">3. Confirmación</span>
-                    <span className="block text-[9px] text-neutral-500 truncate">Al ingresar el dinero</span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-emerald-950 leading-relaxed max-w-md mx-auto">
-                  El sistema monitorea en tiempo real la cuenta <strong>{storeConfig.bankDetails?.accountNumber || "150-0894213-01"}</strong> ({storeConfig.bankDetails?.bankName || "Banco BNB"}). <strong>Recién en el instante en que el dinero ingrese a la cuenta bancaria del negocio</strong>, tu compra <strong className="font-mono text-neutral-900">{createdQrOrder?.code || qrOrderRef}</strong> se confirmará automáticamente sin intervención del administrador.
+                <p className="leading-relaxed text-[11px]">
+                  1. Escanea el QR desde tu banca móvil y transfiere <strong>{storeConfig.currency} {(createdQrOrder?.total || grandTotal).toFixed(2)}</strong>.<br />
+                  2. Una vez hecha la transferencia, presiona el botón de abajo para notificar al negocio.
                 </p>
               </div>
 
@@ -950,11 +870,11 @@ export default function CheckoutModal() {
               <div className="space-y-2 pt-1">
                 <button
                   type="button"
-                  onClick={handleAutoConfirmQrPayment}
-                  className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md shadow-emerald-600/15 transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                  onClick={handleClientFinishedPayment}
+                  className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>⚡ Simular ingreso del dinero al Banco ahora (Autoconfirmar)</span>
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span>Ya realicé el pago por QR</span>
                 </button>
 
                 {features.orderTracking && (
@@ -964,10 +884,10 @@ export default function CheckoutModal() {
                       setIsCheckoutOpen(false);
                       openTracking(createdQrOrder || qrOrderRef);
                     }}
-                    className="w-full py-3 px-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-bold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                    className="w-full py-2.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-bold text-xs shadow-sm transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                   >
                     <Clock className="w-4 h-4 text-amber-400" />
-                    <span>Ver Seguimiento de mi Pedido en Vivo</span>
+                    <span>Ver Seguimiento en Vivo</span>
                   </button>
                 )}
 
@@ -976,7 +896,7 @@ export default function CheckoutModal() {
                   onClick={() => setIsCheckoutOpen(false)}
                   className="w-full py-2 text-neutral-500 hover:text-neutral-800 font-semibold text-xs cursor-pointer text-center"
                 >
-                  Volver al Menú
+                  Volver al Catálogo
                 </button>
               </div>
             </div>

@@ -79,6 +79,12 @@ export default function OrderManager() {
     window.open(`https://wa.me/${cleanPhone}?text=${message}`, "_blank");
   };
 
+  const handleConfirmPaymentInBank = (order) => {
+    updateOrderPaymentStatus(order.id, "pagado");
+    updateOrderStatus(order.id, "preparando");
+    toast.success(`✅ Pago de ${storeConfig.currency}${order.total.toFixed(2)} confirmado en banco. Pedido ${order.code} pasó a preparación.`);
+  };
+
   const handleSendToDeliveryDriver = (order) => {
     let msg = `🛵 *PEDIDO PARA ENTREGA - ${storeConfig.name.toUpperCase()}*\n`;
     msg += `📋 Código: *${order.code}*\n`;
@@ -247,6 +253,39 @@ export default function OrderManager() {
                   </div>
                 </div>
 
+                {/* Bank Confirmation Action Alert for Admin */}
+                {(order.paymentStatus === "esperando_confirmacion_bancaria" || order.paymentStatus === "esperando_deposito_qr") && (
+                  <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 border border-amber-200">
+                        <Clock className="w-5 h-5 text-amber-700 animate-pulse" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-amber-950">
+                            Pago por QR pendiente de confirmación bancaria
+                          </span>
+                          <span className="text-[10px] font-mono font-bold bg-amber-200 text-amber-950 px-2 py-0.5 rounded">
+                            {storeConfig.currency} {order.total.toFixed(2)}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-amber-800 block">
+                          Revisa en tu banca móvil si ingresó el abono de <strong>{storeConfig.currency} {order.total.toFixed(2)}</strong> (Glosa: <strong>{order.code}</strong>).
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleConfirmPaymentInBank(order)}
+                      className="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer shrink-0"
+                    >
+                      <Check className="w-4 h-4 stroke-[3]" />
+                      <span>Confirmar pago recibido en banco</span>
+                    </button>
+                  </div>
+                )}
+
                 {/* Middle row: Customer Info & Order Items */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   {/* Customer Column */}
@@ -268,14 +307,15 @@ export default function OrderManager() {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <strong>Pago:</strong> {order.paymentMethod}
                         {order.paymentStatus === "pagado" && (
-                          <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-300">
-                            🏦 Acreditado automáticamente en Banco
+                          <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-300 inline-flex items-center gap-1">
+                            <Check className="w-3 h-3 text-emerald-700 stroke-[3]" />
+                            <span>Pago verificado y confirmado en banco</span>
                           </span>
                         )}
-                        {(order.paymentStatus === "esperando_deposito_qr" || order.paymentStatus === "verificacion_pendiente") && (
+                        {(order.paymentStatus === "esperando_confirmacion_bancaria" || order.paymentStatus === "esperando_deposito_qr") && (
                           <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-full border border-amber-300 inline-flex items-center gap-1">
                             <Clock className="w-3 h-3 animate-spin text-amber-700" />
-                            <span>Monitoreo bancario activo (se autoconfirmará al ingresar el pago)</span>
+                            <span>Esperando que el admin confirme el ingreso</span>
                           </span>
                         )}
                       </div>

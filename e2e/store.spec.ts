@@ -137,8 +137,9 @@ test.describe('OmniStore Pro — Suite E2E', () => {
     // Seamless transition to QR Simple payment screen (NO white screen)
     await expect(page.getByText(/QR Simple Oficial Interoperable/i)).toBeVisible({ timeout: 5000 });
     await expect(page.getByText(/Escanea con la App de tu Banco/i)).toBeVisible();
-    await expect(page.getByText(/Esperando Acreditación Bancaria/i)).toBeVisible();
+    await expect(page.getByText(/Monto Exacto a Pagar por QR/i)).toBeVisible();
     await expect(page.getByText(/Banco Nacional de Bolivia/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Ya realicé el pago por QR/i })).toBeVisible();
   });
 
   test('5. Seguridad: Protección del modo Administrador con código PIN', async ({ page }) => {
