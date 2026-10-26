@@ -7,9 +7,18 @@ import {
   Award, 
   Lock, 
   MessageCircle, 
-  Edit3
+  Edit3,
+  Camera
 } from "lucide-react";
 import { motion } from "framer-motion";
+import ImagePickerModal from "./Admin/ImagePickerModal";
+
+const DEFAULT_FASHION_IMAGES = {
+  fashionMenImage: "https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&w=400&q=80",
+  fashionWomenImage: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+  fashionDropsImage: "https://images.unsplash.com/photo-1516826957135-700dedea698c?auto=format&fit=crop&w=400&q=80",
+  fashionSeasonImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
+};
 
 function getBrandWord(rawName = "KULT") {
   const beforePipe = (rawName || "KULT").split("|")[0].trim();
@@ -18,8 +27,9 @@ function getBrandWord(rawName = "KULT") {
 }
 
 export default function FashionHero({ onExploreClick, onSelectCategory }) {
-  const { storeConfig, enterAdminMode, isAdminAuthenticated } = useStore();
+  const { storeConfig, updateStoreConfig, enterAdminMode, isAdminAuthenticated } = useStore();
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
+  const [editingImageField, setEditingImageField] = useState(null);
 
   const brandWord = getBrandWord(storeConfig.name);
   const brandLetters = brandWord.split("");
@@ -28,6 +38,10 @@ export default function FashionHero({ onExploreClick, onSelectCategory }) {
     !storeConfig.bannerUrl.includes("photo-1490481651871-ab68de25d43d")
       ? storeConfig.bannerUrl
       : "/gazu-hero-model.png";
+  const menImage = storeConfig.fashionMenImage || DEFAULT_FASHION_IMAGES.fashionMenImage;
+  const womenImage = storeConfig.fashionWomenImage || DEFAULT_FASHION_IMAGES.fashionWomenImage;
+  const dropsImage = storeConfig.fashionDropsImage || DEFAULT_FASHION_IMAGES.fashionDropsImage;
+  const seasonImage = storeConfig.fashionSeasonImage || DEFAULT_FASHION_IMAGES.fashionSeasonImage;
 
   // Dynamic font size so any brand name length fits edge-to-edge behind the model
   const letterSizeClass =
@@ -225,14 +239,28 @@ export default function FashionHero({ onExploreClick, onSelectCategory }) {
             {/* Card 1: HOMBRE / OVERSIZED TEES */}
             <div
               onClick={() => handleCategoryShortcut("Oversized Tees")}
-              className="group flex items-center gap-4 bg-[#1a1a1a] hover:bg-[#222222] p-3.5 sm:p-4 border border-white/10 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+              className="group relative flex items-center gap-4 bg-[#1a1a1a] hover:bg-[#222222] p-3.5 sm:p-4 border border-white/10 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
             >
-              <div className="w-20 h-24 sm:w-24 sm:h-28 bg-neutral-800 overflow-hidden flex-shrink-0">
+              <div className="relative w-20 h-24 sm:w-24 sm:h-28 bg-neutral-800 overflow-hidden flex-shrink-0">
                 <img
-                  src="https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&w=400&q=80"
+                  src={menImage}
                   alt="Colección Hombre"
                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition duration-500"
                 />
+                {isAdminAuthenticated && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingImageField("fashionMenImage");
+                    }}
+                    title="Cambiar imagen de Hombre"
+                    className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1 text-[10px] font-bold text-white transition cursor-pointer"
+                  >
+                    <Camera className="w-4 h-4" />
+                    <span>Editar</span>
+                  </button>
+                )}
               </div>
               <div className="min-w-0">
                 <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wider text-white">
@@ -251,14 +279,28 @@ export default function FashionHero({ onExploreClick, onSelectCategory }) {
             {/* Card 2: MUJER / HOODIES & JACKETS */}
             <div
               onClick={() => handleCategoryShortcut("Hoodies & Jackets")}
-              className="group flex items-center gap-4 bg-[#1a1a1a] hover:bg-[#222222] p-3.5 sm:p-4 border border-white/10 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+              className="group relative flex items-center gap-4 bg-[#1a1a1a] hover:bg-[#222222] p-3.5 sm:p-4 border border-white/10 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
             >
-              <div className="w-20 h-24 sm:w-24 sm:h-28 bg-neutral-800 overflow-hidden flex-shrink-0">
+              <div className="relative w-20 h-24 sm:w-24 sm:h-28 bg-neutral-800 overflow-hidden flex-shrink-0">
                 <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
+                  src={womenImage}
                   alt="Colección Mujer"
                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition duration-500"
                 />
+                {isAdminAuthenticated && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingImageField("fashionWomenImage");
+                    }}
+                    title="Cambiar imagen de Mujer"
+                    className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1 text-[10px] font-bold text-white transition cursor-pointer"
+                  >
+                    <Camera className="w-4 h-4" />
+                    <span>Editar</span>
+                  </button>
+                )}
               </div>
               <div className="min-w-0">
                 <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wider text-white">
@@ -277,14 +319,28 @@ export default function FashionHero({ onExploreClick, onSelectCategory }) {
             {/* Card 3: CARGO & DROPS */}
             <div
               onClick={() => handleCategoryShortcut("Pantalones & Denim")}
-              className="group flex items-center gap-4 bg-[#1a1a1a] hover:bg-[#222222] p-3.5 sm:p-4 border border-white/10 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+              className="group relative flex items-center gap-4 bg-[#1a1a1a] hover:bg-[#222222] p-3.5 sm:p-4 border border-white/10 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
             >
-              <div className="w-20 h-24 sm:w-24 sm:h-28 bg-neutral-800 overflow-hidden flex-shrink-0">
+              <div className="relative w-20 h-24 sm:w-24 sm:h-28 bg-neutral-800 overflow-hidden flex-shrink-0">
                 <img
-                  src="https://images.unsplash.com/photo-1516826957135-700dedea698c?auto=format&fit=crop&w=400&q=80"
+                  src={dropsImage}
                   alt="Cargo & Drops"
                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition duration-500"
                 />
+                {isAdminAuthenticated && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingImageField("fashionDropsImage");
+                    }}
+                    title="Cambiar imagen de Cargo & Drops"
+                    className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1 text-[10px] font-bold text-white transition cursor-pointer"
+                  >
+                    <Camera className="w-4 h-4" />
+                    <span>Editar</span>
+                  </button>
+                )}
               </div>
               <div className="min-w-0">
                 <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wider text-white">
@@ -342,13 +398,23 @@ export default function FashionHero({ onExploreClick, onSelectCategory }) {
             whileInView={{ opacity: 1, transform: "scale(1)" }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 w-full sm:w-1/2 flex justify-center sm:justify-end self-end"
+            className="group relative z-10 w-full sm:w-1/2 flex justify-center sm:justify-end self-end"
           >
             <img
-              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80"
+              src={seasonImage}
               alt="Nueva Temporada Editorial"
               className="h-[230px] sm:h-[320px] lg:h-[360px] w-auto object-cover object-top grayscale contrast-125 mix-blend-multiply"
             />
+            {isAdminAuthenticated && (
+              <button
+                type="button"
+                onClick={() => setEditingImageField("fashionSeasonImage")}
+                className="absolute bottom-4 right-4 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-black/80 hover:bg-black text-white text-xs font-bold shadow-lg transition cursor-pointer"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                <span>Cambiar foto</span>
+              </button>
+            )}
           </motion.div>
         </div>
       </div>
@@ -409,6 +475,24 @@ export default function FashionHero({ onExploreClick, onSelectCategory }) {
           </div>
         </div>
       </div>
+
+      <ImagePickerModal
+        isOpen={Boolean(editingImageField)}
+        onClose={() => setEditingImageField(null)}
+        currentImage={
+          editingImageField
+            ? storeConfig[editingImageField] || DEFAULT_FASHION_IMAGES[editingImageField]
+            : ""
+        }
+        onSelectImage={(newUrl) => {
+          if (editingImageField) {
+            updateStoreConfig({
+              ...storeConfig,
+              [editingImageField]: newUrl,
+            });
+          }
+        }}
+      />
 
     </section>
   );

@@ -1,14 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { IMAGE_LIBRARY_PRESETS } from "../../data/presets";
-import { X, Image as ImageIcon, Link, Check, Sparkles } from "lucide-react";
+import { X, Image as ImageIcon, Link, Check, Sparkles, Upload } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ImagePickerModal({ isOpen, onClose, onSelectImage, currentImage }) {
   const [activeTab, setActiveTab] = useState(IMAGE_LIBRARY_PRESETS[0].category);
   const [customUrl, setCustomUrl] = useState(currentImage || "");
   const [selectedPresetUrl, setSelectedPresetUrl] = useState(currentImage || "");
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCustomUrl(currentImage || "");
+      setSelectedPresetUrl(currentImage || "");
+    }
+  }, [isOpen, currentImage]);
 
   if (!isOpen) return null;
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result;
+      if (typeof dataUrl === "string") {
+        setCustomUrl(dataUrl);
+        setSelectedPresetUrl(dataUrl);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleConfirm = () => {
     const finalUrl = customUrl.trim() || selectedPresetUrl;
@@ -62,12 +84,29 @@ export default function ImagePickerModal({ isOpen, onClose, onSelectImage, curre
 
           {/* Body */}
           <div className="p-5 overflow-y-auto space-y-4">
-            {/* Custom URL Input */}
-            <div className="bg-neutral-50 p-3.5 rounded-xl border border-neutral-200">
-              <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <Link className="w-3.5 h-3.5 text-neutral-500" />
-                <span>Pega la URL de cualquier imagen web:</span>
-              </label>
+            {/* Custom URL Input + File Upload */}
+            <div className="bg-neutral-50 p-3.5 rounded-xl border border-neutral-200 space-y-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <Link className="w-3.5 h-3.5 text-neutral-500" />
+                  <span>Pega la URL o sube desde tu equipo:</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-[11px] font-bold transition cursor-pointer"
+                >
+                  <Upload className="w-3 h-3" />
+                  <span>Subir archivo</span>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </div>
               <div className="flex gap-2">
                 <input
                   type="text"

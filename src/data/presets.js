@@ -137,6 +137,10 @@ export const BUSINESS_PRESETS = {
     deliveryCost: 5.00,
     logoUrl: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=180&h=180&q=80",
     bannerUrl: "/gazu-hero-model.png",
+    fashionMenImage: "https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&w=400&q=80",
+    fashionWomenImage: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+    fashionDropsImage: "https://images.unsplash.com/photo-1516826957135-700dedea698c?auto=format&fit=crop&w=400&q=80",
+    fashionSeasonImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
     categories: ["Nuevos Drops", "Oversized Tees", "Pantalones & Denim", "Hoodies & Jackets", "Accesorios"],
     orderTypes: ["Envío Estándar", "Envío Express (24h)", "Retiro en Showroom"],
     products: [
@@ -482,6 +486,10 @@ export const IMAGE_LIBRARY_PRESETS = [
     category: "Moda & Indumentaria",
     images: [
       { url: "/gazu-hero-model.png", label: "Modelo Editorial (Portada Hero)" },
+      { url: "https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&w=400&q=80", label: "Sección Hombre (Editorial)" },
+      { url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80", label: "Sección Mujer (Editorial)" },
+      { url: "https://images.unsplash.com/photo-1516826957135-700dedea698c?auto=format&fit=crop&w=400&q=80", label: "Sección Cargo & Drops" },
+      { url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80", label: "Banner Nuevas Vibras" },
       { url: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80", label: "Remera blanca boxy fit" },
       { url: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80", label: "Hoodie negro minimalista" },
       { url: "https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=800&q=80", label: "Campera bomber urbana" },

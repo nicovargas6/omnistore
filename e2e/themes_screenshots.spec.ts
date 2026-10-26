@@ -117,5 +117,11 @@ test.describe('Verification of Full-Bleed Themes, Category Pill & Admin Tabs', (
     await expect(fashionBannerInput).toBeVisible();
     const fashionAssetsRow = fashionBannerInput.locator('..').locator('..').locator('..');
     await fashionAssetsRow.screenshot({ path: 'mobile-screens/26_admin_fashion_banner_preview.png' });
+
+    // Verify the 4 Fashion Editorial Images section in Admin Customizer
+    const editorialSection = page.getByText(/Imágenes de las Secciones Editoriales \(Ropa\)/i).locator('..').locator('..').locator('..');
+    await editorialSection.scrollIntoViewIfNeeded();
+    await expect(editorialSection).toBeVisible();
+    await editorialSection.screenshot({ path: 'mobile-screens/27_admin_fashion_editorial_images.png' });
   });
 });

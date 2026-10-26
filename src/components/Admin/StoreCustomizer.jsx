@@ -53,6 +53,10 @@ export default function StoreCustomizer() {
     heroBadge: storeConfig.heroBadge || "",
     logoUrl: storeConfig.logoUrl,
     bannerUrl: storeConfig.bannerUrl,
+    fashionMenImage: storeConfig.fashionMenImage || "https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&w=400&q=80",
+    fashionWomenImage: storeConfig.fashionWomenImage || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+    fashionDropsImage: storeConfig.fashionDropsImage || "https://images.unsplash.com/photo-1516826957135-700dedea698c?auto=format&fit=crop&w=400&q=80",
+    fashionSeasonImage: storeConfig.fashionSeasonImage || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
     phoneWhatsApp: storeConfig.phoneWhatsApp,
     address: storeConfig.address,
     currency: storeConfig.currency,
@@ -105,6 +109,10 @@ export default function StoreCustomizer() {
       heroBadge: p.heroBadge || "",
       logoUrl: p.logoUrl,
       bannerUrl: p.bannerUrl,
+      fashionMenImage: p.fashionMenImage || prev.fashionMenImage || "https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&w=400&q=80",
+      fashionWomenImage: p.fashionWomenImage || prev.fashionWomenImage || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      fashionDropsImage: p.fashionDropsImage || prev.fashionDropsImage || "https://images.unsplash.com/photo-1516826957135-700dedea698c?auto=format&fit=crop&w=400&q=80",
+      fashionSeasonImage: p.fashionSeasonImage || prev.fashionSeasonImage || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
       phoneWhatsApp: p.phoneWhatsApp,
       address: p.address,
       currency: p.currency,
@@ -592,6 +600,139 @@ export default function StoreCustomizer() {
             </div>
           </div>
         </div>
+
+        {/* Fashion Editorial Images (HOMBRE, MUJER, CARGO & DROPS, NUEVAS VIBRAS) */}
+        {(activePresetKey === "fashion" || storeConfig.id === "fashion") && (
+          <div className="pt-3 border-t border-neutral-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-neutral-800 uppercase tracking-wider flex items-center gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5 text-neutral-500" />
+                <span>Imágenes de las Secciones Editoriales (Ropa)</span>
+              </span>
+              <span className="text-[11px] text-neutral-400">
+                Hombre, Mujer, Cargo & Drops y Banner Nuevas Vibras
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* 1. HOMBRE */}
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                  <span>Tarjeta "Hombre" (URL)</span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveImageField("fashionMenImage")}
+                    className="text-neutral-900 hover:underline font-semibold text-xs flex items-center gap-1 cursor-pointer"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" /> Elegir imagen
+                  </button>
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={formData.fashionMenImage}
+                    onChange={(e) => setFormData({ ...formData, fashionMenImage: e.target.value })}
+                    className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white"
+                  />
+                  <div className="w-11 h-11 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100 flex-shrink-0">
+                    <img
+                      src={formData.fashionMenImage}
+                      alt="Hombre preview"
+                      className="w-full h-full object-cover grayscale"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. MUJER */}
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                  <span>Tarjeta "Mujer" (URL)</span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveImageField("fashionWomenImage")}
+                    className="text-neutral-900 hover:underline font-semibold text-xs flex items-center gap-1 cursor-pointer"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" /> Elegir imagen
+                  </button>
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={formData.fashionWomenImage}
+                    onChange={(e) => setFormData({ ...formData, fashionWomenImage: e.target.value })}
+                    className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white"
+                  />
+                  <div className="w-11 h-11 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100 flex-shrink-0">
+                    <img
+                      src={formData.fashionWomenImage}
+                      alt="Mujer preview"
+                      className="w-full h-full object-cover grayscale"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. CARGO & DROPS */}
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                  <span>Tarjeta "Cargo & Drops" (URL)</span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveImageField("fashionDropsImage")}
+                    className="text-neutral-900 hover:underline font-semibold text-xs flex items-center gap-1 cursor-pointer"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" /> Elegir imagen
+                  </button>
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={formData.fashionDropsImage}
+                    onChange={(e) => setFormData({ ...formData, fashionDropsImage: e.target.value })}
+                    className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white"
+                  />
+                  <div className="w-11 h-11 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100 flex-shrink-0">
+                    <img
+                      src={formData.fashionDropsImage}
+                      alt="Cargo & Drops preview"
+                      className="w-full h-full object-cover grayscale"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. BANNER NUEVA TEMPORADA / NUEVAS VIBRAS */}
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                  <span>Banner "Nuevas Vibras" (URL)</span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveImageField("fashionSeasonImage")}
+                    className="text-neutral-900 hover:underline font-semibold text-xs flex items-center gap-1 cursor-pointer"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" /> Elegir imagen
+                  </button>
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={formData.fashionSeasonImage}
+                    onChange={(e) => setFormData({ ...formData, fashionSeasonImage: e.target.value })}
+                    className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white"
+                  />
+                  <div className="w-11 h-11 rounded-xl overflow-hidden border border-neutral-200 bg-[#d6d5d0] flex-shrink-0">
+                    <img
+                      src={formData.fashionSeasonImage}
+                      alt="Nuevas Vibras preview"
+                      className="w-full h-full object-cover object-top grayscale"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Contact & Commerce Settings */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-neutral-100">
