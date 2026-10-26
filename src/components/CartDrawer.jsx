@@ -76,22 +76,15 @@ export default function CartDrawer() {
     <AnimatePresence>
       <div className="fixed inset-0 z-50 overflow-hidden">
         {/* Backdrop */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+        <div
           onClick={() => setIsCartOpen(false)}
-          className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+          className="absolute inset-0 bg-black/60 transition-opacity"
         />
 
         {/* Drawer container */}
         <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-10">
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 28, stiffness: 280 }}
-            className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between border-l border-neutral-200 h-[100dvh]"
+          <div
+            className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between border-l border-neutral-200 h-[100dvh] transform transition-transform duration-200 ease-out"
           >
             {/* Drawer Header */}
             <div className="p-5 border-b border-neutral-100 flex items-center justify-between">
@@ -180,8 +173,7 @@ export default function CartDrawer() {
                 </div>
               ) : (
                 cart.map((item) => (
-                  <motion.div
-                    layout
+                  <div
                     key={item.cartItemId}
                     className="flex items-center gap-3 p-3 bg-neutral-50 rounded-2xl border border-neutral-200/80"
                   >
@@ -246,7 +238,7 @@ export default function CartDrawer() {
                         </button>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 ))
               )}
 
@@ -392,17 +384,16 @@ export default function CartDrawer() {
                   </div>
                 </div>
 
-                <motion.button
-                  whileTap={{ scale: 0.98 }}
+                <button
                   onClick={handleStartCheckout}
-                  className="w-full py-3.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-bold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-bold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
                   <span>Continuar al Checkout</span>
                   <ArrowRight className="w-4 h-4" />
-                </motion.button>
+                </button>
               </div>
             )}
-          </motion.div>
+          </div>
         </div>
       </div>
     </AnimatePresence>

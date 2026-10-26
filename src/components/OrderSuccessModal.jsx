@@ -86,124 +86,59 @@ export default function OrderSuccessModal() {
   };
 
   const handleDownloadReceiptPdf = () => {
-    const iframe = document.createElement("iframe");
-    iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "none";
-    document.body.appendChild(iframe);
+    // Generate clean text-based receipt and trigger instant direct download as .txt / .doc / printable receipt
+    const separator = "==================================================";
+    const thinSeparator = "--------------------------------------------------";
+    const receiptDate = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const receiptTime = new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 
-    const doc = iframe.contentWindow.document;
-    doc.open();
-    doc.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Comprobante de Compra - ${completedOrder.code}</title>
-          <style>
-            @page { size: auto; margin: 15mm; }
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #18181b; margin: 0; padding: 24px; line-height: 1.5; font-size: 13px; }
-            .header { border-bottom: 2px solid #e4e4e7; padding-bottom: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
-            .title { font-size: 22px; font-weight: 800; color: #09090b; margin: 0; }
-            .badge { display: inline-block; background: #ecfdf5; color: #065f46; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; border: 1px solid #a7f3d0; margin-top: 6px; }
-            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-            .box { background: #f8fafc; padding: 12px 16px; border-radius: 10px; font-size: 12px; border: 1px solid #e2e8f0; }
-            .box-title { font-weight: 700; color: #64748b; text-transform: uppercase; font-size: 10px; margin-bottom: 6px; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-            th { text-align: left; background: #f1f5f9; padding: 10px 12px; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; }
-            td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
-            .total-row { font-size: 16px; font-weight: 800; }
-            .footer { border-top: 1px solid #e4e4e7; padding-top: 16px; text-align: center; color: #71717a; font-size: 11px; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div>
-              <h1 class="title">${storeConfig.name}</h1>
-              <div style="color: #64748b; font-size: 12px; margin-top: 2px;">${storeConfig.address} • Tel: ${storeConfig.phoneWhatsApp}</div>
-            </div>
-            <div style="text-align: right;">
-              <div style="font-size: 18px; font-weight: 800; font-family: monospace;">${completedOrder.code}</div>
-              <div style="font-size: 11px; color: #64748b;">${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-              ${completedOrder.paymentStatus === 'pagado' ? '<div class="badge">✅ PAGADO & ACREDITADO</div>' : '<div class="badge" style="background:#fef3c7;color:#92400e;border-color:#fde68a;">PENDIENTE DE PAGO</div>'}
-            </div>
-          </div>
+    let content = `${separator}\n`;
+    content += `        ${storeConfig.name.toUpperCase()}\n`;
+    content += `        ${storeConfig.address}\n`;
+    content += `        WhatsApp: ${storeConfig.phoneWhatsApp}\n`;
+    if (storeConfig.taxId) content += `        ${storeConfig.taxId} - ${storeConfig.legalName || storeConfig.name}\n`;
+    content += `${separator}\n\n`;
+    content += `COMPROBANTE OFICIAL DE COMPRA\n`;
+    content += `ORDEN: ${completedOrder.code}\n`;
+    content += `FECHA: ${receiptDate} ${receiptTime}\n`;
+    content += `ESTADO DE PAGO: ${completedOrder.paymentStatus === "pagado" ? "PAGADO & ACREDITADO (EN PREPARACION)" : "PENDIENTE"}\n`;
+    if (completedOrder.bankTransactionId) content += `REF. BANCARIA: ${completedOrder.bankTransactionId}\n`;
+    content += `METODO DE PAGO: ${completedOrder.paymentMethod}\n`;
+    content += `${thinSeparator}\n`;
+    content += `DATOS DEL CLIENTE:\n`;
+    content += `Nombre: ${completedOrder.customerName}\n`;
+    content += `Telefono: ${completedOrder.customerPhone}\n`;
+    content += `Modalidad: ${completedOrder.orderType}\n`;
+    content += `Direccion / Salon: ${completedOrder.customerAddress}\n`;
+    if (completedOrder.googleMapsUrl) content += `GPS: ${completedOrder.googleMapsUrl}\n`;
+    if (completedOrder.notes) content += `Notas: ${completedOrder.notes}\n`;
+    content += `${thinSeparator}\n`;
+    content += `DETALLE DE ARTICULOS:\n`;
+    completedOrder.items.forEach((it) => {
+      const opt = it.option ? ` (${it.option})` : "";
+      content += ` ${it.quantity}x ${it.name}${opt}\n`;
+      content += `    P. Unit: ${storeConfig.currency}${it.price.toFixed(2)}  |  Total: ${storeConfig.currency}${(it.price * it.quantity).toFixed(2)}\n`;
+    });
+    content += `${thinSeparator}\n`;
+    content += `Subtotal: ${storeConfig.currency}${(completedOrder.subtotal || completedOrder.total).toFixed(2)}\n`;
+    if (completedOrder.discount > 0) content += `Descuento: -${storeConfig.currency}${completedOrder.discount.toFixed(2)}\n`;
+    if (completedOrder.deliveryFee > 0) content += `Costo Entrega: ${storeConfig.currency}${completedOrder.deliveryFee.toFixed(2)}\n`;
+    content += `TOTAL ABONADO: ${storeConfig.currency}${completedOrder.total.toFixed(2)}\n`;
+    content += `${separator}\n`;
+    content += `Gracias por su preferencia!\n`;
+    content += `${separator}\n`;
 
-          <div class="info-grid">
-            <div class="box">
-              <div class="box-title">Datos del Cliente</div>
-              <div><strong>Nombre:</strong> ${completedOrder.customerName}</div>
-              <div><strong>Teléfono:</strong> ${completedOrder.customerPhone}</div>
-              <div><strong>Entrega / Salón:</strong> ${completedOrder.customerAddress}</div>
-            </div>
-            <div class="box">
-              <div class="box-title">Detalle de Pago & Envío</div>
-              <div><strong>Modalidad:</strong> ${completedOrder.orderType}</div>
-              <div><strong>Método de Pago:</strong> ${completedOrder.paymentMethod}</div>
-              ${completedOrder.notes ? `<div><strong>Notas:</strong> ${completedOrder.notes}</div>` : ''}
-            </div>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Descripción del Artículo</th>
-                <th style="text-align:center;">Cant.</th>
-                <th style="text-align:right;">Precio Unit.</th>
-                <th style="text-align:right;">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${completedOrder.items.map(it => `
-                <tr>
-                  <td>
-                    <strong>${it.name}</strong>
-                    ${it.option ? `<br><small style="color:#64748b;">${it.option}</small>` : ''}
-                  </td>
-                  <td style="text-align:center;">${it.quantity}</td>
-                  <td style="text-align:right;">${storeConfig.currency} ${it.price.toFixed(2)}</td>
-                  <td style="text-align:right;">${storeConfig.currency} ${(it.price * it.quantity).toFixed(2)}</td>
-                </tr>
-              `).join('')}
-              <tr>
-                <td colspan="3" style="text-align:right; color:#64748b;">Subtotal</td>
-                <td style="text-align:right; font-weight:600;">${storeConfig.currency} ${(completedOrder.subtotal || completedOrder.total).toFixed(2)}</td>
-              </tr>
-              ${completedOrder.discount > 0 ? `
-              <tr>
-                <td colspan="3" style="text-align:right; color:#059669;">Descuento cupón</td>
-                <td style="text-align:right; color:#059669; font-weight:600;">-${storeConfig.currency} ${completedOrder.discount.toFixed(2)}</td>
-              </tr>` : ''}
-              ${completedOrder.deliveryFee > 0 ? `
-              <tr>
-                <td colspan="3" style="text-align:right; color:#64748b;">Envío / Delivery</td>
-                <td style="text-align:right; font-weight:600;">${storeConfig.currency} ${completedOrder.deliveryFee.toFixed(2)}</td>
-              </tr>` : ''}
-              <tr class="total-row">
-                <td colspan="3" style="text-align:right; padding-top:14px;">Total Abonado</td>
-                <td style="text-align:right; padding-top:14px; color:#059669;">${storeConfig.currency} ${completedOrder.total.toFixed(2)}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="footer">
-            <p style="font-weight: 600; margin-bottom: 4px;">¡Muchas gracias por su preferencia! • ${storeConfig.name}</p>
-            <p>Comprobante de compra electrónico generado automáticamente.</p>
-          </div>
-        </body>
-      </html>
-    `);
-    doc.close();
-
-    setTimeout(() => {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-      setTimeout(() => {
-        try { document.body.removeChild(iframe); } catch {}
-      }, 2000);
-    }, 400);
+    // Direct browser file download without opening the print dialog
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Recibo_${completedOrder.code.replace(/[^a-zA-Z0-9-]/g, "")}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success(`Recibo oficial ${completedOrder.code} descargado correctamente.`);
   };
 
   return (

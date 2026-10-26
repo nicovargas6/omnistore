@@ -305,88 +305,76 @@ export default function CheckoutModal() {
   };
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-        {/* Backdrop */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => {
-            if (checkoutStep !== "qr_payment") setIsCheckoutOpen(false);
-          }}
-          className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity"
-        />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      {/* Backdrop without expensive blur */}
+      <div
+        onClick={() => {
+          if (checkoutStep !== "qr_payment") setIsCheckoutOpen(false);
+        }}
+        className="fixed inset-0 bg-black/80 transition-opacity"
+      />
 
-        {/* Modal Window */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 12 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 10 }}
-          className="relative bg-white w-full max-w-2xl sm:rounded-3xl shadow-2xl overflow-hidden z-10 border border-neutral-200 flex flex-col h-[100dvh] sm:h-auto sm:max-h-[92vh]"
-        >
-          {/* VIEW 1: Multi-Step Checkout Form */}
-          {checkoutStep === "form" && (
-            <>
-              {/* Header with Step Indicator */}
-              <div className="p-4 sm:p-6 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
-                <div className="min-w-0 pr-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                      formStep === 1 
-                        ? "bg-neutral-900 text-white" 
-                        : "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                    }`}>
-                      1. Contacto & Entrega {formStep > 1 && "✓"}
-                    </span>
-                    <span className="text-neutral-300">/</span>
-                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                      formStep === 2 
-                        ? "bg-neutral-900 text-white" 
-                        : "bg-neutral-100 text-neutral-400 border border-neutral-200"
-                    }`}>
-                      2. Método de Pago
-                    </span>
-                  </div>
-                  <h2 className="text-lg sm:text-xl font-bold text-neutral-900 truncate">
-                    {formStep === 1 ? "Información de Contacto & Entrega" : "Selecciona tu Método de Pago"}
-                  </h2>
+      {/* Modal Window with GPU translate/opacity only */}
+      <div
+        className="relative bg-white w-full max-w-2xl sm:rounded-3xl shadow-2xl overflow-hidden z-10 border border-neutral-200 flex flex-col h-[100dvh] sm:h-auto sm:max-h-[92vh]"
+      >
+        {/* VIEW 1: Multi-Step Checkout Form */}
+        {checkoutStep === "form" && (
+          <>
+            {/* Header with Step Indicator */}
+            <div className="p-4 sm:p-6 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
+              <div className="min-w-0 pr-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    formStep === 1 
+                      ? "bg-neutral-900 text-white" 
+                      : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                  }`}>
+                    1. Contacto & Entrega {formStep > 1 && "✓"}
+                  </span>
+                  <span className="text-neutral-300">/</span>
+                  <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    formStep === 2 
+                      ? "bg-neutral-900 text-white" 
+                      : "bg-neutral-100 text-neutral-400 border border-neutral-200"
+                  }`}>
+                    2. Método de Pago
+                  </span>
                 </div>
-
-                <button
-                  onClick={() => setIsCheckoutOpen(false)}
-                  className="w-10 h-10 rounded-full bg-white hover:bg-neutral-100 flex items-center justify-center text-neutral-700 hover:text-neutral-950 transition cursor-pointer border border-neutral-200 shadow-sm active:scale-95 flex-shrink-0"
-                  title="Cerrar"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <h2 className="text-lg sm:text-xl font-bold text-neutral-900 truncate">
+                  {formStep === 1 ? "Información de Contacto & Entrega" : "Selecciona tu Método de Pago"}
+                </h2>
               </div>
 
-              {/* Form Body with scroll container */}
-              <div ref={formScrollRef} className="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1">
-                {/* Store Closed Warning Banner if outside hours */}
-                {!isStoreOpen && (
-                  <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-2.5 text-xs text-rose-900">
-                    <Clock className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-bold block">El local se encuentra cerrado en este momento</span>
-                      <span className="text-[11px] text-rose-700">
-                        Horario de atención: {storeConfig.businessHours?.openTime || "11:00"} a {storeConfig.businessHours?.closeTime || "23:00"}. Tu comanda quedará registrada y se procesará al reanudar actividades.
-                      </span>
-                    </div>
-                  </div>
-                )}
+              <button
+                onClick={() => setIsCheckoutOpen(false)}
+                className="w-10 h-10 rounded-full bg-white hover:bg-neutral-100 flex items-center justify-center text-neutral-700 hover:text-neutral-950 transition cursor-pointer border border-neutral-200 shadow-sm active:scale-95 flex-shrink-0"
+                title="Cerrar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-                {/* ========================================================= */}
-                {/* ETAPA 1: INFORMACIÓN DE CONTACTO Y MODALIDAD DE ENTREGA   */}
-                {/* ========================================================= */}
-                {formStep === 1 && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    className="space-y-6"
-                  >
+            {/* Form Body with scroll container */}
+            <div ref={formScrollRef} className="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1">
+              {/* Store Closed Warning Banner if outside hours */}
+              {!isStoreOpen && (
+                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-2.5 text-xs text-rose-900">
+                  <Clock className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold block">El local se encuentra cerrado en este momento</span>
+                    <span className="text-[11px] text-rose-700">
+                      Horario de atención: {storeConfig.businessHours?.openTime || "11:00"} a {storeConfig.businessHours?.closeTime || "23:00"}. Tu comanda quedará registrada y se procesará al reanudar actividades.
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================= */}
+              {/* ETAPA 1: INFORMACIÓN DE CONTACTO Y MODALIDAD DE ENTREGA   */}
+              {/* ========================================================= */}
+              {formStep === 1 && (
+                <div className="space-y-6">
                     {/* Seccion 1: Contacto */}
                     <div>
                       <h3 className="text-xs font-bold text-neutral-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
@@ -537,17 +525,14 @@ export default function CheckoutModal() {
                         <ArrowRight className="w-4 h-4 text-emerald-400" />
                       </button>
                     </div>
-                  </motion.div>
+                  </div>
                 )}
 
                 {/* ========================================================= */}
                 {/* ETAPA 2: SECCIÓN 3. MÉTODO DE PAGO Y CONFIRMACIÓN         */}
                 {/* ========================================================= */}
                 {formStep === 2 && (
-                  <motion.form
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
+                  <form
                     onSubmit={handleSubmit}
                     className="space-y-6"
                   >
@@ -790,7 +775,7 @@ export default function CheckoutModal() {
                         </>
                       )}
                     </button>
-                  </motion.form>
+                  </form>
                 )}
               </div>
             </>
@@ -996,8 +981,7 @@ export default function CheckoutModal() {
               </div>
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
-    </AnimatePresence>
   );
 }
